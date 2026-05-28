@@ -13,7 +13,9 @@ cd SocSwitch
 
 Raw data are not included. See [DATA_AVAILABILITY.md](DATA_AVAILABILITY.md) for source groups, access conditions, and local folder expectations.
 
-Place the required files under `data/` using the local folder structure described there.
+The underlying vote-switching harmonization follows [`voteswitchR`](https://github.com/denis-cohen/voteswitchR). This repository assumes that the required `voteswitchR`-style harmonized switching objects are available locally. Additional CSES Module 6 elections were added manually for this project and must also be present locally for full reproduction.
+
+Place the required raw, harmonized, and derived files under `data/` using the local folder structure described there.
 
 ## 3. Restore the R Environment
 
@@ -25,9 +27,9 @@ renv::restore()
 
 If `renv.lock` has not yet been created, install the packages listed in `code/switching/utils/packages.R`.
 
-## 4. Rebuild the Data
+## 4. Run Project-Specific Data Preparation
 
-Run the data-preparation scripts in numerical order. The main locations are:
+After the upstream vote-switching harmonization and CSES Module 6 additions are available locally, run the SocSwitch data-preparation scripts in numerical order. The main locations are:
 
 ```text
 code/switching/data_preparation/building_micro_data/
@@ -36,7 +38,7 @@ code/switching/data_preparation/independent_variables/
 code/switching/data_preparation/building_analysis_data/
 ```
 
-Some scripts depend on local raw survey files and will fail if the corresponding restricted files are absent.
+Some scripts depend on local restricted files or locally generated harmonized objects and will fail if those files are absent.
 
 ## 5. Estimate Models
 
@@ -69,13 +71,14 @@ Outputs are written to local `plots/` or `data/analysis/` subfolders and are ign
 Reproducible from Git alone:
 
 - The code structure.
-- The data-processing logic.
+- The project-specific data-processing logic after upstream harmonization.
 - The modeling and plotting scripts.
 - Documentation of data requirements.
 
 Not reproducible from Git alone:
 
 - Raw respondent-level survey files.
+- The full upstream vote-switching harmonization procedure, which is documented in `voteswitchR`.
 - Processed respondent-level data.
 - Imputed respondent-level data.
 - Large model objects generated from restricted data.

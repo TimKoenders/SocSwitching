@@ -2,13 +2,15 @@
 
 Code repository for **Social Democracy in Polyadic Competition: Explaining Voter Flows Across Party Families**.
 
-This project studies voter flows between social-democratic parties and their competitors across comparative election contexts. The repository contains the code used to prepare vote-switching data, build contextual measures, estimate the models, and produce the descriptive figures, model results, and appendix material.
+This project studies voter flows between social-democratic parties and their competitors across comparative election contexts. The repository contains the project-specific code used after vote-switching data have been harmonized, including scripts to build contextual measures, estimate the models, and produce the descriptive figures, model results, and appendix material.
+
+The underlying vote-switching harmonization procedure is not reimplemented here. It follows the [`voteswitchR`](https://github.com/denis-cohen/voteswitchR) infrastructure for harmonizing, mapping, imputing, raking, and aggregating comparative vote-switching data. For this project, additional CSES Module 6 elections were added manually to extend the set of available electoral contexts.
 
 ## Data Availability
 
 The raw respondent-level election studies used in this project are not redistributed in this repository. Many of the underlying national election studies and comparative survey files are governed by third-party terms of use, registration requirements, or restricted-access agreements. The rights to distribute those data remain with the original data providers.
 
-Researchers with authorized access can reproduce the analyses by obtaining the required files from the original providers and placing them in the local folder structure described in [DATA_AVAILABILITY.md](DATA_AVAILABILITY.md). The repository is therefore designed as an **open-code, restricted-data** replication package.
+Researchers with authorized access can reproduce the analyses by obtaining the required files from the original providers, reconstructing or obtaining the required `voteswitchR`-style harmonized switching objects locally, and placing the resulting files in the local folder structure described in [DATA_AVAILABILITY.md](DATA_AVAILABILITY.md). The repository is therefore designed as an **open-code, restricted-data** replication package.
 
 Where legally permitted, derived aggregate outputs may be shared separately. Raw survey files, harmonized respondent-level data, imputed data, processed microdata, and large model objects should not be committed to this repository.
 
@@ -17,7 +19,7 @@ Where legally permitted, derived aggregate outputs may be shared separately. Raw
 ```text
 code/
   switching/
-    data_preparation/      # Microdata harmonization, dependent variables, context data
+    data_preparation/      # Project-specific preparation after voteswitchR-style harmonization
     descriptives/          # Descriptive plots and tables
     model/                 # Model estimation and result scripts
     utils/                 # Shared package and helper scripts
@@ -35,11 +37,11 @@ REPRODUCIBILITY.md         # How to recreate outputs once data are available
 The analyses are reproducible conditional on lawful access to the underlying data. A typical workflow is:
 
 1. Obtain the required survey, party, election, and contextual datasets from the original providers.
-2. Place the files under `data/` using the structure described in [DATA_AVAILABILITY.md](DATA_AVAILABILITY.md).
-3. Restore the R package environment if an `renv.lock` file is available.
-4. Run the numbered scripts in `code/switching/data_preparation/`.
-5. Run the scripts in `code/switching/model/`.
-6. Run the scripts in `code/switching/descriptives/` and result scripts to recreate figures and tables.
+2. Follow the `voteswitchR` harmonization workflow for the baseline vote-switching infrastructure.
+3. Add the project-specific CSES Module 6 election extensions locally.
+4. Place the local harmonized and derived files under `data/` using the structure described in [DATA_AVAILABILITY.md](DATA_AVAILABILITY.md).
+5. Restore the R package environment if an `renv.lock` file is available.
+6. Run the SocSwitch data-preparation, model, descriptive, and result scripts to recreate figures and tables.
 
 More detailed instructions are in [REPRODUCIBILITY.md](REPRODUCIBILITY.md).
 
