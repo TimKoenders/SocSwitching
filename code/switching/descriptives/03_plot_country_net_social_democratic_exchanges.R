@@ -46,6 +46,13 @@ path_transitions_primary <- file.path(
   "df_realised_transitions_primary_social_democratic.rds"
 )
 
+path_switching_bundle <- file.path(
+  project_dir,
+  "data",
+  "processed",
+  "switching_datasets.RData"
+)
+
 required_inputs <- c(path_transitions_primary)
 
 names(required_inputs) <- c("primary realised transitions")
@@ -66,6 +73,12 @@ if (length(missing_inputs) > 0) {
 transitions_primary <- readRDS(path_transitions_primary)
 
 stopifnot(is.data.frame(transitions_primary), nrow(transitions_primary) > 0)
+
+switching_bundle_env <- new.env(parent = emptyenv())
+
+if (file.exists(path_switching_bundle)) {
+  load(path_switching_bundle, envir = switching_bundle_env)
+}
 
 required_transition_vars <- c(
   "iso2c_file",
@@ -106,9 +119,13 @@ make_party_label <- function(country, party_name) {
     party_name == "non-voters" ~ "Non-vote",
 
     country == "AT" & party_name == "Austrian People's Party" ~ "OVP",
+    country == "AT" & party_name == "Austrian Social Democratic Party" ~ "SPO",
     country == "AT" & party_name == "Freedom Party of Austria" ~ "FPO",
+    country == "AT" & party_name == "Austrian Freedom Party" ~ "FPO",
     country == "AT" & party_name == "The Greens" ~ "Greens",
+    country == "AT" & party_name == "The New Austria (NEOS)" ~ "NEOS",
     country == "AT" & grepl("^JETZT", party_name) ~ "JETZT",
+    country == "AT" & party_name == "Peter Pilz List" ~ "JETZT",
     country == "AT" & party_name == "Communist Party of Austria" ~ "KPO",
 
     country == "DE" & party_name == "Christian Democratic Union/Christian Social Union" ~ "CDU/CSU",
@@ -244,6 +261,93 @@ transitions_with_parties <- transitions_clean %>%
     !is.na(to_party_bloc),
     !is.na(from_party_bloc)
   )
+
+if (exists("df_all", envir = switching_bundle_env)) {
+  df_all_bundle <- get("df_all", envir = switching_bundle_env)
+
+  at_historical_source <- df_all_bundle %>%
+    mutate(
+      iso2c_file = as.character(iso2c_file),
+      elec_id = as.character(elec_id),
+      year = as.integer(year)
+    ) %>%
+    filter(
+      iso2c_file == "AT",
+      year < min(transitions_clean$year[transitions_clean$iso2c_file == "AT"], na.rm = TRUE)
+    )
+
+  at_historical_map <- at_historical_source %>%
+    transmute(
+      elec_id,
+      year,
+      alt_id = as.character(stack),
+      party_name = as.character(party_label_best),
+      party_bloc = case_when(
+        parfam_harmonized == "soc" ~ "social_democratic",
+        parfam_harmonized == "eco" ~ "green",
+        parfam_harmonized == "nat" ~ "far_right",
+        parfam_harmonized %in% c("chr", "mrp", "con", "lib") ~ "mainstream_right",
+        TRUE ~ as.character(parfam_harmonized)
+      )
+    ) %>%
+    filter(!is.na(alt_id), !is.na(party_name), !is.na(party_bloc)) %>%
+    distinct(elec_id, year, alt_id, .keep_all = TRUE)
+
+  at_historical_transitions <- at_historical_source %>%
+    transmute(
+      iso2c_file,
+      elec_id,
+      year,
+      id = as.character(id),
+      election_id = paste(iso2c_file, elec_id, sep = "__"),
+      vote_alt_id = as.character(vote),
+      lag_alt_id = as.character(l_vote),
+      weights = if_else(is.na(weights), 1, as.numeric(weights))
+    ) %>%
+    filter(!is.na(id), !is.na(weights), weights > 0) %>%
+    distinct(iso2c_file, elec_id, year, id, .keep_all = TRUE) %>%
+    left_join(
+      at_historical_map %>%
+        rename(
+          vote_alt_id = alt_id,
+          to_party_name = party_name,
+          to_party_bloc = party_bloc
+        ),
+      by = c("elec_id", "year", "vote_alt_id")
+    ) %>%
+    left_join(
+      at_historical_map %>%
+        rename(
+          lag_alt_id = alt_id,
+          from_party_name = party_name,
+          from_party_bloc = party_bloc
+        ),
+      by = c("elec_id", "year", "lag_alt_id")
+    ) %>%
+    filter(
+      !is.na(to_party_name),
+      !is.na(from_party_name),
+      !is.na(to_party_bloc),
+      !is.na(from_party_bloc)
+    )
+
+  transitions_with_parties <- transitions_with_parties %>%
+    bind_rows(
+      at_historical_transitions %>%
+        select(
+          iso2c_file,
+          elec_id,
+          year,
+          id,
+          election_id,
+          weights,
+          to_party_name,
+          to_party_bloc,
+          from_party_name,
+          from_party_bloc
+        )
+    )
+}
 
 # ------------------------------------------------
 # 5. Pooled country-level net exchanges
