@@ -113,6 +113,7 @@ country_labels <- c(
 )
 
 make_party_label <- function(country, party_name) {
+  party_name <- trimws(as.character(party_name))
   label <- party_name
 
   label <- dplyr::case_when(
@@ -126,7 +127,7 @@ make_party_label <- function(country, party_name) {
     country == "AT" & party_name == "The New Austria (NEOS)" ~ "NEOS",
     country == "AT" & grepl("^JETZT", party_name) ~ "JETZT",
     country == "AT" & party_name == "Peter Pilz List" ~ "JETZT",
-    country == "AT" & party_name == "Communist Party of Austria" ~ "KPO",
+    country == "AT" & grepl("Communist Party of Austria", party_name) ~ "KPO",
 
     country == "DE" & party_name == "Christian Democratic Union/Christian Social Union" ~ "CDU/CSU",
     country == "DE" & party_name == "Free Democratic Party" ~ "FDP",
@@ -428,33 +429,16 @@ country_net_exchanges <- full_join(
     .groups = "drop"
   )
 
-net_exchanges <- country_net_exchanges %>%
-  filter(
-    party_label != "Non-vote",
-    !(iso2c_file == "AT" & party_label %in% c("JETZT")),
-    !(iso2c_file == "DE" & party_label %in% c("NPD", "REP")),
-    !(iso2c_file == "NL" & party_label %in% c(
-      "50Plus", "CD", "Union 55+", "Reformed Political League",
-      "Reformatory Political Federation", "LN", "SGP", "PvdD",
-      "List Pim Fortuyn", "Christian Union", "FvD"
-    )),
-    !(iso2c_file == "DK" & party_label %in% c(
-      "Alternative", "The New Right", "New Alliance", "Rad. Venstre",
-      "Venstre", "Liberal Alliance", "Centre Democrats", "Red-Green",
-      "Justice Party", "Common Course", "Independent Greens",
-      "Denmark Democrats - Inger Stojberg", "Moderates", "Hard Line",
-      "Klaus Riskaer Pedersen List", "Left Socialist Party",
-      "Danish Communist Party"
-    ))
-  ) %>%
-  semi_join(
-    selected_parties %>% select(iso2c_file, party_label),
-    by = c("iso2c_file", "party_label")
-  ) %>%
+net_exchanges <- selected_parties %>%
+  filter(party_label != "Non-vote") %>%
   left_join(
-    selected_parties %>%
-      select(iso2c_file, party_label, party_order),
+    country_net_exchanges,
     by = c("iso2c_file", "party_label")
+  ) %>%
+  mutate(
+    outward_pct = replace_na(outward_pct, 0),
+    inward_pct = replace_na(inward_pct, 0),
+    net_pct = replace_na(net_pct, 0)
   ) %>%
   left_join(
     country_years %>%
@@ -509,9 +493,6 @@ plot_data <- net_exchanges %>%
     party_panel_label = factor(party_panel_label, levels = party_levels)
   )
 
-max_abs_net <- max(abs(plot_data$net_pct), na.rm = TRUE)
-x_limit <- max(0.8, ceiling(max_abs_net * 10) / 10)
-
 p <- ggplot(
   plot_data,
   aes(x = net_pct, y = party_panel_label)
@@ -531,14 +512,10 @@ p <- ggplot(
   scale_y_discrete(
     labels = function(x) sub("__.*$", "", x)
   ) +
-  coord_cartesian(
-    xlim = c(-x_limit, x_limit),
-    clip = "off"
-  ) +
   facet_wrap(
     ~ country_panel,
     ncol = 2,
-    scales = "free_y"
+    scales = "free"
   ) +
   labs(
     x = "Net exchange with social democrats (percentage points)",
