@@ -15,7 +15,7 @@ Raw data are not included. See [DATA_AVAILABILITY.md](DATA_AVAILABILITY.md) for 
 
 The underlying vote-switching harmonization follows [`voteswitchR`](https://github.com/denis-cohen/voteswitchR). This repository assumes that the required `voteswitchR`-style harmonized switching objects are available locally. Additional CSES Module 6 elections were added manually for this project and must also be present locally for full reproduction.
 
-Place the required raw, harmonized, and derived files under `data/` using the local folder structure described there. The country scripts contain the expected names of the original `.dta`, `.sav`, or equivalent files.
+Place the required raw, harmonized, and derived files under `data/` using the local folder structure described there. For the baseline `voteswitchR` countries, a country can require multiple original files, including CSES, European Voter Project, or national election-study files. The generated country-level `*_data_file.RData` objects are then used by scripts `01`-`31`. The direct CSES Module 6 scripts contain the expected names of the original `.dta`, `.sav`, or equivalent files they read.
 
 For local path configuration, copy the template and edit the copy:
 
@@ -50,7 +50,7 @@ Run the input checker before launching the workflow:
 Rscript code/00_check_inputs.R
 ```
 
-The checker reads `config/required_inputs.csv`, applies the local folder settings from `config/data_paths.yml`, and prints which inputs are found or missing.
+The checker reads `config/required_inputs.csv`, applies the local folder settings from `config/data_paths.yml`, and prints which inputs are found or missing. For scripts `01`-`31`, it checks the generated `voteswitchR` country bundles. It does not enumerate every raw source file behind those bundles, because that source list is governed by the `voteswitchR` data guide and can include multiple files per country.
 
 ## 5. Run Project-Specific Data Preparation
 
@@ -69,7 +69,7 @@ code/switching/data_preparation/independent_variables/
 code/switching/data_preparation/building_analysis_data/
 ```
 
-In `building_micro_data/`, scripts `01`-`31` prepare the original election-study files using the Cohen/`voteswitchR` harmonization infrastructure. Scripts `33` onward add the manually coded CSES Module 6 election studies. `32_append_country_files.R` appends the country-level files into the combined micro-level dataset.
+In `building_micro_data/`, scripts `01`-`31` process the country-level `voteswitchR` bundles produced from the original election-study files. Scripts `33` onward add the manually coded CSES Module 6 election studies. `32_append_country_files.R` appends the country-level files into the combined micro-level dataset.
 
 After the appended micro-level files are available, `building_analysis_data/` constructs the datasets used by the dependent-variable, independent-variable, model, and plotting scripts.
 

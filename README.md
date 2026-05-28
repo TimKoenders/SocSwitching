@@ -41,12 +41,12 @@ The analyses are reproducible conditional on lawful access to the underlying dat
 
 1. Obtain the required survey, party, election, and contextual datasets from the original providers.
 2. Follow the `voteswitchR` harmonization workflow for the baseline vote-switching infrastructure.
-3. Place the original `.dta`, `.sav`, or equivalent survey files in the local data folders expected by the country scripts.
+3. Place the original `.dta`, `.sav`, or equivalent survey files in the local data folders expected by the `voteswitchR` data procurement workflow and the country scripts. A country can require multiple source files, and these can come from CSES, the European Voter Project, or national election studies.
 4. Copy `config/data_paths_template.yml` to `config/data_paths.yml` and adapt local paths when the data are not stored under the default repository folders.
 5. Run `Rscript code/00_check_inputs.R` to verify the local setup.
 6. Run `Rscript code/00_run_all.R --targets=data` to rebuild the analysis data, or `Rscript code/00_run_all.R --targets=all` to run the complete workflow.
 
-The microdata stage runs `code/switching/data_preparation/building_micro_data/`: scripts `01`-`31` prepare country files through the Cohen/`voteswitchR` harmonization infrastructure, scripts `33` onward add the manually coded CSES Module 6 election studies, and `32_append_country_files.R` appends the country files. The appended micro-level files are then processed by `code/switching/data_preparation/building_analysis_data/`.
+The microdata stage runs `code/switching/data_preparation/building_micro_data/`: scripts `01`-`31` start from generated `voteswitchR` country bundles, each of which can be built from multiple original survey files, scripts `33` onward add the manually coded CSES Module 6 election studies, and `32_append_country_files.R` appends the country files. The appended micro-level files are then processed by `code/switching/data_preparation/building_analysis_data/`.
 
 More detailed instructions are in [REPRODUCIBILITY.md](REPRODUCIBILITY.md).
 
