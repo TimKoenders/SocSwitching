@@ -47,20 +47,9 @@ path_transitions_primary <- file.path(
   "df_realised_transitions_primary_social_democratic.rds"
 )
 
-path_party_lookup <- file.path(
-  analysis_dir,
-  "party_lookup_realised_transitions_social_democratic.rds"
-)
+required_inputs <- c(path_transitions_primary)
 
-required_inputs <- c(
-  path_transitions_primary,
-  path_party_lookup
-)
-
-names(required_inputs) <- c(
-  "primary realised transitions",
-  "party lookup for realised transitions"
-)
+names(required_inputs) <- c("primary realised transitions")
 
 missing_inputs <- required_inputs[!file.exists(required_inputs)]
 
@@ -76,10 +65,8 @@ if (length(missing_inputs) > 0) {
 # ------------------------------------------------
 
 transitions_primary <- readRDS(path_transitions_primary)
-party_lookup <- readRDS(path_party_lookup)
 
 stopifnot(is.data.frame(transitions_primary), nrow(transitions_primary) > 0)
-stopifnot(is.data.frame(party_lookup), nrow(party_lookup) > 0)
 
 required_transition_vars <- c(
   "iso2c_file",
@@ -91,29 +78,12 @@ required_transition_vars <- c(
   "weights"
 )
 
-required_lookup_vars <- c(
-  "iso2c_file",
-  "elec_id",
-  "year",
-  "alt_id",
-  "party_name",
-  "party_bloc_detailed"
-)
-
 missing_transition_vars <- setdiff(required_transition_vars, names(transitions_primary))
-missing_lookup_vars <- setdiff(required_lookup_vars, names(party_lookup))
 
 if (length(missing_transition_vars) > 0) {
   stop(
     "Missing variables in transitions_primary: ",
     paste(missing_transition_vars, collapse = ", ")
-  )
-}
-
-if (length(missing_lookup_vars) > 0) {
-  stop(
-    "Missing variables in party_lookup: ",
-    paste(missing_lookup_vars, collapse = ", ")
   )
 }
 
@@ -211,23 +181,6 @@ selected_parties <- tibble::tribble(
 # 4. Prepare transition data
 # ------------------------------------------------
 
-lookup_clean <- party_lookup %>%
-  transmute(
-    iso2c_file = as.character(iso2c_file),
-    elec_id = as.character(elec_id),
-    year = as.integer(year),
-    alt_id = as.character(alt_id),
-    lookup_party_name = as.character(party_name),
-    lookup_party_bloc = as.character(party_bloc_detailed)
-  ) %>%
-  filter(
-    iso2c_file %in% target_countries,
-    !is.na(elec_id),
-    !is.na(year),
-    !is.na(alt_id)
-  ) %>%
-  distinct(iso2c_file, elec_id, year, alt_id, .keep_all = TRUE)
-
 transitions_clean <- transitions_primary %>%
   mutate(
     iso2c_file = as.character(iso2c_file),
@@ -244,31 +197,47 @@ transitions_clean <- transitions_primary %>%
     !is.na(elec_id),
     !is.na(year),
     !is.na(id),
-    !is.na(vote_alt_id),
-    !is.na(lag_alt_id),
     !is.na(weights),
     weights > 0
   ) %>%
   distinct(iso2c_file, elec_id, year, id, .keep_all = TRUE)
 
+lag_party_lookup <- transitions_clean %>%
+  filter(
+    !is.na(vote_alt_id),
+    !is.na(party_label_best),
+    !is.na(party_bloc_detailed)
+  ) %>%
+  transmute(
+    iso2c_file,
+    elec_id,
+    year,
+    lag_alt_id = vote_alt_id,
+    from_party_name_lookup = as.character(party_label_best),
+    from_party_bloc_lookup = as.character(party_bloc_detailed)
+  ) %>%
+  distinct(iso2c_file, elec_id, year, lag_alt_id, .keep_all = TRUE)
+
 transitions_with_parties <- transitions_clean %>%
   left_join(
-    lookup_clean %>%
-      rename(
-        to_party_name = lookup_party_name,
-        to_party_bloc = lookup_party_bloc,
-        vote_alt_id = alt_id
-      ),
-    by = c("iso2c_file", "elec_id", "year", "vote_alt_id")
-  ) %>%
-  left_join(
-    lookup_clean %>%
-      rename(
-        from_party_name = lookup_party_name,
-        from_party_bloc = lookup_party_bloc,
-        lag_alt_id = alt_id
-      ),
+    lag_party_lookup,
     by = c("iso2c_file", "elec_id", "year", "lag_alt_id")
+  ) %>%
+  mutate(
+    to_party_name = as.character(party_label_best),
+    to_party_bloc = as.character(party_bloc_detailed),
+    from_party_name = coalesce(
+      from_party_name_lookup,
+      if_else(
+        switch_from_bloc_detailed == "non",
+        "non-voters",
+        NA_character_
+      )
+    ),
+    from_party_bloc = coalesce(
+      from_party_bloc_lookup,
+      as.character(switch_from_bloc_detailed)
+    )
   ) %>%
   filter(
     !is.na(to_party_name),
@@ -408,7 +377,17 @@ p <- ggplot(
   plot_data,
   aes(x = net_pct, y = party_panel_label)
 ) +
-  geom_col(fill = "grey35", width = 0.72) +
+  geom_col(
+    aes(fill = net_pct >= 0),
+    width = 0.72,
+    show.legend = FALSE
+  ) +
+  scale_fill_manual(
+    values = c(
+      "TRUE" = "#9ccc9c",
+      "FALSE" = "#ee9a9a"
+    )
+  ) +
   geom_vline(xintercept = 0, linewidth = 0.35, colour = "grey25") +
   scale_y_discrete(
     labels = function(x) sub("__.*$", "", x)
@@ -423,15 +402,16 @@ p <- ggplot(
     scales = "free_y"
   ) +
   labs(
-    x = "Net balance (percentage points of electorate)",
+    x = "Net exchange with social democrats (percentage points)",
     y = NULL
   ) +
-  theme_grey(base_size = 9) +
+  theme_minimal(base_size = 9) +
   theme(
     strip.text = element_text(face = "bold", size = 8),
     axis.text.y = element_text(size = 7),
     axis.title.x = element_text(size = 8),
     panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
     plot.margin = margin(5.5, 8, 5.5, 5.5)
   )
 
