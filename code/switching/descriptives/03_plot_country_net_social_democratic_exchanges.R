@@ -3,7 +3,7 @@
 # Selected country-level net exchanges with social-democratic parties
 # Social-democratic vote-switching project
 #
-# This script plots average election-level net voter exchanges between
+# This script plots pooled net voter exchanges between
 # social-democratic parties and selected national competitors in
 # Austria, Germany, the Netherlands, and Denmark.
 #
@@ -12,8 +12,7 @@
 #   minus
 #   weighted outflow from social democracy to party j.
 #
-# Values are expressed as percentage points of the electorate and then
-# averaged across elections in each country.
+# Values are expressed as percentage points of the country electorate.
 # ================================================================
 
 rm(list = ls())
@@ -247,82 +246,18 @@ transitions_with_parties <- transitions_clean %>%
   )
 
 # ------------------------------------------------
-# 5. Election-level net exchanges
+# 5. Pooled country-level net exchanges
 # ------------------------------------------------
 
-election_totals <- transitions_with_parties %>%
-  group_by(iso2c_file, elec_id, year, election_id) %>%
-  summarise(
-    election_weighted_n = sum(weights, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-outward_election_flows <- transitions_with_parties %>%
-  filter(
-    from_party_bloc == "social_democratic",
-    to_party_bloc != "social_democratic"
-  ) %>%
-  mutate(
-    party_label = make_party_label(iso2c_file, to_party_name)
-  ) %>%
-  group_by(iso2c_file, elec_id, year, election_id, party_label) %>%
-  summarise(
-    outward_weighted_n = sum(weights, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-inward_election_flows <- transitions_with_parties %>%
-  filter(
-    to_party_bloc == "social_democratic",
-    from_party_bloc != "social_democratic"
-  ) %>%
-  mutate(
-    party_label = make_party_label(iso2c_file, from_party_name)
-  ) %>%
-  group_by(iso2c_file, elec_id, year, election_id, party_label) %>%
-  summarise(
-    inward_weighted_n = sum(weights, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-election_party_grid <- election_totals %>%
-  left_join(
-    selected_parties %>%
-      select(iso2c_file, party_label),
-    by = "iso2c_file"
-  )
-
-election_net_exchanges <- election_party_grid %>%
-  left_join(
-    outward_election_flows,
-    by = c("iso2c_file", "elec_id", "year", "election_id", "party_label")
-  ) %>%
-  left_join(
-    inward_election_flows,
-    by = c("iso2c_file", "elec_id", "year", "election_id", "party_label")
-  ) %>%
-  mutate(
-    outward_weighted_n = replace_na(outward_weighted_n, 0),
-    inward_weighted_n = replace_na(inward_weighted_n, 0),
-    net_weighted_n = inward_weighted_n - outward_weighted_n,
-    outward_pct = 100 * outward_weighted_n / election_weighted_n,
-    inward_pct = 100 * inward_weighted_n / election_weighted_n,
-    net_pct = 100 * net_weighted_n / election_weighted_n
-  )
-
-net_exchanges <- election_net_exchanges %>%
-  group_by(iso2c_file, party_label) %>%
+country_years <- transitions_with_parties %>%
+  group_by(iso2c_file) %>%
   summarise(
     first_year = min(year, na.rm = TRUE),
     last_year = max(year, na.rm = TRUE),
-    n_elections = n_distinct(election_id),
-    outward_pct = mean(outward_pct, na.rm = TRUE),
-    inward_pct = mean(inward_pct, na.rm = TRUE),
-    net_pct = mean(net_pct, na.rm = TRUE),
     .groups = "drop"
   ) %>%
-  left_join(selected_parties, by = c("iso2c_file", "party_label")) %>%
   mutate(
+    country_label = country_labels[iso2c_file],
     country_panel = paste0(
       country_label,
       " (",
@@ -331,12 +266,106 @@ net_exchanges <- election_net_exchanges %>%
       last_year,
       ")"
     )
+  )
+
+country_dyads <- transitions_with_parties %>%
+  mutate(
+    from_label = if_else(
+      from_party_bloc == "social_democratic",
+      "Social democrats",
+      make_party_label(iso2c_file, from_party_name)
+    ),
+    to_label = if_else(
+      to_party_bloc == "social_democratic",
+      "Social democrats",
+      make_party_label(iso2c_file, to_party_name)
+    )
+  ) %>%
+  filter(!is.na(from_label), !is.na(to_label)) %>%
+  group_by(iso2c_file, from_label, to_label) %>%
+  summarise(
+    weights = sum(weights, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  group_by(iso2c_file) %>%
+  mutate(
+    p_ij = weights / sum(weights, na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+losses_sd <- country_dyads %>%
+  filter(from_label == "Social democrats", to_label != "Social democrats") %>%
+  transmute(
+    iso2c_file,
+    party_label = to_label,
+    outward_pct = 100 * p_ij
+  )
+
+gains_sd <- country_dyads %>%
+  filter(to_label == "Social democrats", from_label != "Social democrats") %>%
+  transmute(
+    iso2c_file,
+    party_label = from_label,
+    inward_pct = 100 * p_ij
+  )
+
+country_net_exchanges <- full_join(
+  losses_sd,
+  gains_sd,
+  by = c("iso2c_file", "party_label")
+) %>%
+  mutate(
+    outward_pct = replace_na(outward_pct, 0),
+    inward_pct = replace_na(inward_pct, 0),
+    net_pct = inward_pct - outward_pct
+  ) %>%
+  group_by(iso2c_file, party_label) %>%
+  summarise(
+    outward_pct = sum(outward_pct, na.rm = TRUE),
+    inward_pct = sum(inward_pct, na.rm = TRUE),
+    net_pct = sum(net_pct, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+net_exchanges <- country_net_exchanges %>%
+  filter(
+    !(iso2c_file == "AT" & party_label %in% c("JETZT", "KPO")),
+    !(iso2c_file == "DE" & party_label %in% c("NPD", "REP")),
+    !(iso2c_file == "NL" & party_label %in% c(
+      "50Plus", "CD", "Union 55+", "Reformed Political League",
+      "Reformatory Political Federation", "LN", "SGP", "PvdD",
+      "List Pim Fortuyn", "Christian Union", "FvD"
+    )),
+    !(iso2c_file == "DK" & party_label %in% c(
+      "Alternative", "The New Right", "New Alliance", "Rad. Venstre",
+      "Venstre", "Liberal Alliance", "Centre Democrats", "Red-Green",
+      "Justice Party", "Common Course", "Independent Greens",
+      "Denmark Democrats - Inger Stojberg", "Moderates", "Hard Line",
+      "Klaus Riskaer Pedersen List", "Left Socialist Party",
+      "Danish Communist Party"
+    ))
+  ) %>%
+  semi_join(
+    selected_parties %>% select(iso2c_file, party_label),
+    by = c("iso2c_file", "party_label")
+  ) %>%
+  left_join(selected_parties, by = c("iso2c_file", "party_label")) %>%
+  left_join(country_years, by = "iso2c_file") %>%
+  group_by(iso2c_file, party_label) %>%
+  summarise(
+    country_label = first(country_label),
+    country_panel = first(country_panel),
+    party_order = first(party_order),
+    outward_pct = sum(outward_pct, na.rm = TRUE),
+    inward_pct = sum(inward_pct, na.rm = TRUE),
+    net_pct = sum(net_pct, na.rm = TRUE),
+    .groups = "drop"
   ) %>%
   arrange(iso2c_file, party_order)
 
 readr::write_csv(
-  election_net_exchanges,
-  file.path(output_dir, "country_election_net_social_democratic_exchanges.csv")
+  country_net_exchanges,
+  file.path(output_dir, "country_all_net_social_democratic_exchanges.csv")
 )
 
 readr::write_csv(
