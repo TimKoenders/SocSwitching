@@ -167,27 +167,24 @@ selected_parties <- tibble::tribble(
   "AT", "FPO", 1,
   "AT", "Greens", 2,
   "AT", "NEOS", 3,
-  "AT", "Non-vote", 4,
+  "AT", "KPO", 4,
   "AT", "OVP", 5,
-  "DE", "Non-vote", 1,
-  "DE", "The Left", 2,
-  "DE", "Greens", 3,
-  "DE", "FDP", 4,
-  "DE", "AfD", 5,
-  "DE", "CDU/CSU", 6,
-  "NL", "Non-vote", 1,
-  "NL", "D66", 2,
-  "NL", "SP", 3,
-  "NL", "GL", 4,
-  "NL", "VVD", 5,
-  "NL", "PVV", 6,
-  "NL", "CDA", 7,
-  "DK", "Non-vote", 1,
-  "DK", "Socialist PP", 2,
-  "DK", "People's Party", 3,
-  "DK", "Conservatives", 4,
-  "DK", "Progress", 5,
-  "DK", "Christian Democrats", 6
+  "DE", "The Left", 1,
+  "DE", "Greens", 2,
+  "DE", "FDP", 3,
+  "DE", "AfD", 4,
+  "DE", "CDU/CSU", 5,
+  "NL", "D66", 1,
+  "NL", "SP", 2,
+  "NL", "GL", 3,
+  "NL", "VVD", 4,
+  "NL", "PVV", 5,
+  "NL", "CDA", 6,
+  "DK", "Socialist PP", 1,
+  "DK", "People's Party", 2,
+  "DK", "Conservatives", 3,
+  "DK", "Progress", 4,
+  "DK", "Christian Democrats", 5
 ) %>%
   mutate(
     country_label = country_labels[iso2c_file]
@@ -433,7 +430,8 @@ country_net_exchanges <- full_join(
 
 net_exchanges <- country_net_exchanges %>%
   filter(
-    !(iso2c_file == "AT" & party_label %in% c("JETZT", "KPO")),
+    party_label != "Non-vote",
+    !(iso2c_file == "AT" & party_label %in% c("JETZT")),
     !(iso2c_file == "DE" & party_label %in% c("NPD", "REP")),
     !(iso2c_file == "NL" & party_label %in% c(
       "50Plus", "CD", "Union 55+", "Reformed Political League",
