@@ -27,34 +27,37 @@ data/
 plots/
   README.md                # Local output folder instructions
 DATA_AVAILABILITY.md       # Source-level data access information
-REPRODUCIBILITY.md         # How to recreate outputs once data are available
+REPRODUCIBILITY.md         # Reproduction workflow for authorized users
 ```
 
 ## Reproducibility
 
-The analyses are reproducible conditional on lawful access to the underlying data. A typical workflow is:
+The analyses are reproducible conditional on lawful access to the underlying data. The workflow is:
 
 1. Obtain the required survey, party, election, and contextual datasets from the original providers.
 2. Follow the `voteswitchR` harmonization workflow for the baseline vote-switching infrastructure.
-3. Add the project-specific CSES Module 6 election extensions locally (if intending to replace the analysis).
+3. Add the project-specific CSES Module 6 election extensions locally.
 4. Place the local harmonized and derived files under `data/` using the structure described in [DATA_AVAILABILITY.md](DATA_AVAILABILITY.md).
-5. Restore the R package environment if an `renv.lock` file is available.
+5. Install and load the required R packages through `code/switching/utils/packages.R`.
 6. Run the SocSwitch data-preparation, model, descriptive, and result scripts to recreate figures and tables.
 
 More detailed instructions are in [REPRODUCIBILITY.md](REPRODUCIBILITY.md).
 
 ## Software
 
-The project is written in R. Package loading is centralized in `code/switching/utils/packages.R` and shared helpers are in `code/switching/utils/helper_functions.R`.
-
-For formal replication, the recommended next step is to initialize `renv` and commit `renv.lock`:
+The project is written in R. Package installation and loading are centralized in `code/switching/utils/packages.R`; shared helpers are in `code/switching/utils/helper_functions.R`. Start an R session from the repository root and run:
 
 ```r
-install.packages("renv")
-renv::init()
-renv::snapshot()
+source("code/switching/utils/packages.R")
+load_packages()
 ```
 
 ## Citation
 
-If you use this repository, please cite the associated paper.
+If you use this repository, please cite:
+
+Koenders, Tim. *Social Democracy in Polyadic Competition: Explaining Voter Flows Across Party Families*.
+
+## License
+
+Copyright (c) 2026 Tim Koenders. All rights reserved. See [LICENSE](LICENSE). This repository does not grant permission to redistribute third-party data.

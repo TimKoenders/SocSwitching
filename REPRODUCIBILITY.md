@@ -1,6 +1,6 @@
 # Reproducibility Guide
 
-This repository is intended to be reproducible for users who have lawful access to the required third-party datasets.
+This guide describes the reproduction workflow for users who have lawful access to the required third-party datasets.
 
 ## 1. Clone the Repository
 
@@ -17,15 +17,16 @@ The underlying vote-switching harmonization follows [`voteswitchR`](https://gith
 
 Place the required raw, harmonized, and derived files under `data/` using the local folder structure described there.
 
-## 3. Restore the R Environment
+## 3. Install R Packages
 
-If an `renv.lock` file is available, restore the package environment with:
+Package installation and loading are handled by the project helper:
 
 ```r
-renv::restore()
+source("code/switching/utils/packages.R")
+load_packages()
 ```
 
-If `renv.lock` has not yet been created, install the packages listed in `code/switching/utils/packages.R`.
+The helper installs missing CRAN packages and the GitHub dependency `denis-cohen/voteswitchR`.
 
 ## 4. Run Project-Specific Data Preparation
 
@@ -84,10 +85,3 @@ Not reproducible from Git alone:
 - Large model objects generated from restricted data.
 
 Full computational reproduction requires authorized access to the underlying data.
-
-## Recommended Future Improvements
-
-- Add `renv.lock`.
-- Add a single orchestration script, for example `code/00_run_all.R`.
-- Add checks that verify required local files before long scripts run.
-- Add a small synthetic test dataset to confirm that the pipeline executes without restricted data.

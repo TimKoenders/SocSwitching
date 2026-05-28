@@ -2,7 +2,7 @@
 
 This repository does not include raw respondent-level election studies or processed respondent-level versions derived from them. Many of the underlying datasets are distributed by third-party providers under terms that require registration, acceptance of conditions, data-use agreements, or research proposals. Users who wish to fully reproduce the analyses must obtain the data directly from the original providers.
 
-The repository provides code and documentation for authorized users to rebuild the SocSwitch analysis locally once the required vote-switching data infrastructure has been reconstructed.
+The repository provides code and documentation for authorized users to rebuild the SocSwitch analysis locally with the required vote-switching data infrastructure.
 
 ## Vote-Switching Harmonization
 
@@ -50,7 +50,7 @@ These folders are intentionally ignored by Git except for README files and the m
 
 ## File Manifest
 
-The file [data/data_manifest.csv](data/data_manifest.csv) gives a machine-readable overview of the expected data groups, local folders, and redistribution status. It is intentionally source-level rather than file-level until the final replication archive is frozen.
+The file [data/data_manifest.csv](data/data_manifest.csv) gives a machine-readable overview of the expected data groups, local folders, and redistribution status. It is source-level because the restricted files are obtained directly from third-party providers and can differ in file names or delivery formats.
 
 ## Notes for Replicators
 
@@ -61,4 +61,4 @@ The file [data/data_manifest.csv](data/data_manifest.csv) gives a machine-readab
 5. Run the SocSwitch data-preparation, model, and plotting scripts in order.
 6. Do not commit raw or processed restricted data to Git.
 
-If a data provider changes access conditions or file names, update this document and `data/data_manifest.csv`.
+Provider access conditions and file names are governed by the original data providers.
