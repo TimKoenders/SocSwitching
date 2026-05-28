@@ -1,4 +1,37 @@
-data/*
-!data/processed/
-!data/processed/*.rds
+# R / RStudio local state
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
 VoteSwitching.Rproj
+
+# Restricted third-party data and generated data products
+data/**
+!data/
+!data/**/
+!data/**/README.md
+!data/data_manifest.csv
+!data/.gitkeep
+
+# Generated figures, tables, manuscripts, and model outputs
+plots/**
+!plots/
+!plots/README.md
+*.pdf
+*.html
+*.docx
+*.pptx
+
+# Large or local computation artifacts
+*.RData
+*.rds
+*.qs
+*.fst
+*.csv
+*.tsv
+
+# Keep repository metadata files even when extensions above are ignored
+!README.md
+!DATA_AVAILABILITY.md
+!REPRODUCIBILITY.md
+!data/data_manifest.csv
