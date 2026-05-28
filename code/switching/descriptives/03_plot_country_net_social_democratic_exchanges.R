@@ -500,7 +500,7 @@ panel_levels <- net_exchanges %>%
   pull(country_panel)
 
 party_levels <- net_exchanges %>%
-  arrange(match(iso2c_file, target_countries), desc(party_order)) %>%
+  arrange(match(iso2c_file, target_countries), desc(net_pct)) %>%
   mutate(party_panel_label = paste(party_label, country_panel, sep = "__")) %>%
   pull(party_panel_label)
 
