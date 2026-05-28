@@ -349,8 +349,16 @@ net_exchanges <- country_net_exchanges %>%
     selected_parties %>% select(iso2c_file, party_label),
     by = c("iso2c_file", "party_label")
   ) %>%
-  left_join(selected_parties, by = c("iso2c_file", "party_label")) %>%
-  left_join(country_years, by = "iso2c_file") %>%
+  left_join(
+    selected_parties %>%
+      select(iso2c_file, party_label, party_order),
+    by = c("iso2c_file", "party_label")
+  ) %>%
+  left_join(
+    country_years %>%
+      select(iso2c_file, country_label, country_panel),
+    by = "iso2c_file"
+  ) %>%
   group_by(iso2c_file, party_label) %>%
   summarise(
     country_label = first(country_label),
