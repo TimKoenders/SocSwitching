@@ -1,20 +1,19 @@
 # ================================================================
 # 03_plot_country_net_social_democratic_exchanges.R
-# Country-level net exchanges with social-democratic parties
+# Selected country-level net exchanges with social-democratic parties
 # Social-democratic vote-switching project
 #
-# This script plots pooled net voter exchanges between social
-# democratic parties and national competitors in Austria, the
-# Netherlands, Germany, and Denmark.
+# This script plots average election-level net voter exchanges between
+# social-democratic parties and selected national competitors in
+# Austria, Germany, the Netherlands, and Denmark.
 #
 # Net exchange is defined as:
 #   weighted inflow to social democracy from party j
 #   minus
 #   weighted outflow from social democracy to party j.
 #
-# Values are shown as percentage points of all valid respondents in
-# the pooled country sample. Negative values are net losses for social
-# democracy, positive values are net gains.
+# Values are expressed as percentage points of the electorate and then
+# averaged across elections in each country.
 # ================================================================
 
 rm(list = ls())
@@ -122,12 +121,12 @@ if (length(missing_lookup_vars) > 0) {
 # 3. Country and party labels
 # ------------------------------------------------
 
-target_countries <- c("AT", "NL", "DE", "DK")
+target_countries <- c("AT", "DE", "NL", "DK")
 
 country_labels <- c(
   "AT" = "Austria",
-  "NL" = "Netherlands",
   "DE" = "Germany",
+  "NL" = "Netherlands",
   "DK" = "Denmark"
 )
 
@@ -137,14 +136,22 @@ make_party_label <- function(country, party_name) {
   label <- dplyr::case_when(
     party_name == "non-voters" ~ "Non-vote",
 
-    country == "AT" & party_name == "Social Democratic Party of Austria" ~ "SPO",
     country == "AT" & party_name == "Austrian People's Party" ~ "OVP",
     country == "AT" & party_name == "Freedom Party of Austria" ~ "FPO",
     country == "AT" & party_name == "The Greens" ~ "Greens",
     country == "AT" & grepl("^JETZT", party_name) ~ "JETZT",
     country == "AT" & party_name == "Communist Party of Austria" ~ "KPO",
 
-    country == "NL" & party_name == "Labour Party" ~ "PvdA",
+    country == "DE" & party_name == "Christian Democratic Union/Christian Social Union" ~ "CDU/CSU",
+    country == "DE" & party_name == "Free Democratic Party" ~ "FDP",
+    country == "DE" & party_name %in% c("The Greens", "Greens/Alliance'90") ~ "Greens",
+    country == "DE" & party_name %in% c(
+      "Party of Democratic Socialism",
+      "The Left. Party of Democratic Socialism",
+      "The Left"
+    ) ~ "The Left",
+    country == "DE" & party_name == "Alternative for Germany" ~ "AfD",
+
     country == "NL" & party_name == "People's Party for Freedom and Democracy" ~ "VVD",
     country == "NL" & party_name == "Democrats'66" ~ "D66",
     country == "NL" & party_name == "Christian Democratic Appeal" ~ "CDA",
@@ -153,64 +160,52 @@ make_party_label <- function(country, party_name) {
     country == "NL" & party_name == "Party of Freedom" ~ "PVV",
     country == "NL" & party_name == "Forum for Democracy" ~ "FvD",
     country == "NL" & party_name == "Party for the Animals" ~ "PvdD",
-    country == "NL" & party_name == "Christian Union" ~ "CU",
-    country == "NL" & party_name == "Reformed Political Party" ~ "SGP",
-    country == "NL" & party_name == "List Pim Fortuyn" ~ "LPF",
-    country == "NL" & party_name == "Livable Netherlands" ~ "LN",
-    country == "NL" & party_name == "Centre Democrats" ~ "CD",
 
-    country == "DE" & party_name == "Social Democratic Party of Germany" ~ "SPD",
-    country == "DE" & party_name == "Christian Democratic Union/Christian Social Union" ~ "CDU",
-    country == "DE" & party_name == "Free Democratic Party" ~ "FDP",
-    country == "DE" & party_name %in% c("The Greens", "Greens/Alliance'90") ~ "Greens",
-    country == "DE" & party_name %in% c(
-      "The Left",
-      "The Left. Party of Democratic Socialism",
-      "Party of Democratic Socialism"
-    ) ~ "The Left",
-    country == "DE" & party_name == "Alternative for Germany" ~ "AfD",
-    country == "DE" & party_name == "The Republicans" ~ "REP",
-
-    country == "DK" & party_name %in% c(
-      "Social Democratic Party",
-      "Social Democrats"
-    ) ~ "Social Dem.",
-    country == "DK" & party_name %in% c(
-      "Danish Social-Liberal Party",
-      "Danish Social Liberal Party"
-    ) ~ "Rad. Venstre",
-    country == "DK" & party_name %in% c(
-      "Liberals",
-      "Venstre, Denmark's Liberal Party"
-    ) ~ "Venstre",
-    country == "DK" & party_name == "Conservative People's Party" ~ "Conservatives",
-    country == "DK" & party_name == "Danish People's Party" ~ "Danish PP",
     country == "DK" & party_name == "Socialist People's Party" ~ "Socialist PP",
-    country == "DK" & party_name %in% c(
-      "Red-Green Unity List",
-      "Unity List - Red-Green Alliance"
-    ) ~ "Red-Green",
-    country == "DK" & party_name %in% c(
-      "Alternativ",
-      "The Alternative"
-    ) ~ "Alternative",
-    country == "DK" & party_name == "Liberal Alliance" ~ "Lib. Alliance",
-    country == "DK" & party_name == "The New Right" ~ "New Right",
+    country == "DK" & party_name == "Danish People's Party" ~ "People's Party",
+    country == "DK" & party_name == "Conservative People's Party" ~ "Conservatives",
+    country == "DK" & party_name == "Progress Party" ~ "Progress",
     country == "DK" & party_name %in% c(
       "Christian People's Party",
       "Christian Democrats"
-    ) ~ "Chr. Dem.",
-    country == "DK" & party_name == "Centre Democrats" ~ "Centre Dem.",
-    country == "DK" & party_name == "Denmark Democrats - Inger Stojberg" ~ "Denmark Dem.",
-    country == "DK" & party_name == "Independent Greens" ~ "Ind. Greens",
-    country == "DK" & party_name == "Klaus Riskaer Pedersen List" ~ "Riskaer",
-    country == "DK" & party_name == "Left Socialist Party" ~ "Left Socialists",
+    ) ~ "Christian Democrats",
 
     TRUE ~ label
   )
 
   label
 }
+
+selected_parties <- tibble::tribble(
+  ~iso2c_file, ~party_label, ~party_order,
+  "AT", "FPO", 1,
+  "AT", "Greens", 2,
+  "AT", "NEOS", 3,
+  "AT", "Non-vote", 4,
+  "AT", "OVP", 5,
+  "DE", "Non-vote", 1,
+  "DE", "The Left", 2,
+  "DE", "Greens", 3,
+  "DE", "FDP", 4,
+  "DE", "AfD", 5,
+  "DE", "CDU/CSU", 6,
+  "NL", "Non-vote", 1,
+  "NL", "D66", 2,
+  "NL", "SP", 3,
+  "NL", "GL", 4,
+  "NL", "VVD", 5,
+  "NL", "PVV", 6,
+  "NL", "CDA", 7,
+  "DK", "Non-vote", 1,
+  "DK", "Socialist PP", 2,
+  "DK", "People's Party", 3,
+  "DK", "Conservatives", 4,
+  "DK", "Progress", 5,
+  "DK", "Christian Democrats", 6
+) %>%
+  mutate(
+    country_label = country_labels[iso2c_file]
+  )
 
 # ------------------------------------------------
 # 4. Prepare transition data
@@ -239,6 +234,7 @@ transitions_clean <- transitions_primary %>%
     elec_id = as.character(elec_id),
     year = as.integer(year),
     id = as.character(id),
+    election_id = paste(iso2c_file, elec_id, sep = "__"),
     vote_alt_id = as.character(vote),
     lag_alt_id = as.character(l_vote),
     weights = if_else(is.na(weights), 1, as.numeric(weights))
@@ -274,101 +270,105 @@ transitions_with_parties <- transitions_clean %>%
       ),
     by = c("iso2c_file", "elec_id", "year", "lag_alt_id")
   ) %>%
-  mutate(
-    to_party_bloc = coalesce(to_party_bloc, as.character(party_bloc_detailed)),
-    from_party_bloc = coalesce(
-      from_party_bloc,
-      as.character(switch_from_bloc_detailed)
-    ),
-    to_party_name = coalesce(to_party_name, as.character(party_label_best)),
-    from_party_name = coalesce(from_party_name, as.character(switch_from))
-  ) %>%
   filter(
-    !is.na(to_party_bloc),
-    !is.na(from_party_bloc),
     !is.na(to_party_name),
-    !is.na(from_party_name)
+    !is.na(from_party_name),
+    !is.na(to_party_bloc),
+    !is.na(from_party_bloc)
   )
 
 # ------------------------------------------------
-# 5. Net exchanges
+# 5. Election-level net exchanges
 # ------------------------------------------------
 
-country_totals <- transitions_with_parties %>%
-  group_by(iso2c_file) %>%
+election_totals <- transitions_with_parties %>%
+  group_by(iso2c_file, elec_id, year, election_id) %>%
   summarise(
-    country_weighted_n = sum(weights, na.rm = TRUE),
+    election_weighted_n = sum(weights, na.rm = TRUE),
     .groups = "drop"
   )
 
-outward_flows <- transitions_with_parties %>%
+outward_election_flows <- transitions_with_parties %>%
   filter(
     from_party_bloc == "social_democratic",
     to_party_bloc != "social_democratic"
   ) %>%
-  group_by(iso2c_file, competitor_party_name = to_party_name) %>%
+  mutate(
+    party_label = make_party_label(iso2c_file, to_party_name)
+  ) %>%
+  group_by(iso2c_file, elec_id, year, election_id, party_label) %>%
   summarise(
     outward_weighted_n = sum(weights, na.rm = TRUE),
     .groups = "drop"
   )
 
-inward_flows <- transitions_with_parties %>%
+inward_election_flows <- transitions_with_parties %>%
   filter(
     to_party_bloc == "social_democratic",
     from_party_bloc != "social_democratic"
   ) %>%
-  group_by(iso2c_file, competitor_party_name = from_party_name) %>%
+  mutate(
+    party_label = make_party_label(iso2c_file, from_party_name)
+  ) %>%
+  group_by(iso2c_file, elec_id, year, election_id, party_label) %>%
   summarise(
     inward_weighted_n = sum(weights, na.rm = TRUE),
     .groups = "drop"
   )
 
-net_exchanges_detailed <- full_join(
-  outward_flows,
-  inward_flows,
-  by = c("iso2c_file", "competitor_party_name")
-) %>%
-  mutate(
-    outward_weighted_n = replace_na(outward_weighted_n, 0),
-    inward_weighted_n = replace_na(inward_weighted_n, 0)
-  ) %>%
-  left_join(country_totals, by = "iso2c_file") %>%
-  mutate(
-    net_weighted_n = inward_weighted_n - outward_weighted_n,
-    transfer_weighted_n = inward_weighted_n + outward_weighted_n,
-    country_label = country_labels[iso2c_file],
-    party_label = make_party_label(iso2c_file, competitor_party_name)
-  ) %>%
-  filter(
-    !is.na(country_label),
-    transfer_weighted_n > 0
+election_party_grid <- election_totals %>%
+  left_join(
+    selected_parties %>%
+      select(iso2c_file, party_label),
+    by = "iso2c_file"
   )
 
-net_exchanges <- net_exchanges_detailed %>%
-  group_by(
-    iso2c_file,
-    country_label,
-    party_label,
-    country_weighted_n
+election_net_exchanges <- election_party_grid %>%
+  left_join(
+    outward_election_flows,
+    by = c("iso2c_file", "elec_id", "year", "election_id", "party_label")
   ) %>%
-  summarise(
-    competitor_party_names = paste(
-      sort(unique(competitor_party_name)),
-      collapse = "; "
-    ),
-    outward_weighted_n = sum(outward_weighted_n, na.rm = TRUE),
-    inward_weighted_n = sum(inward_weighted_n, na.rm = TRUE),
-    .groups = "drop"
+  left_join(
+    inward_election_flows,
+    by = c("iso2c_file", "elec_id", "year", "election_id", "party_label")
   ) %>%
   mutate(
+    outward_weighted_n = replace_na(outward_weighted_n, 0),
+    inward_weighted_n = replace_na(inward_weighted_n, 0),
     net_weighted_n = inward_weighted_n - outward_weighted_n,
-    transfer_weighted_n = inward_weighted_n + outward_weighted_n,
-    outward_pct = 100 * outward_weighted_n / country_weighted_n,
-    inward_pct = 100 * inward_weighted_n / country_weighted_n,
-    net_pct = 100 * net_weighted_n / country_weighted_n,
-    transfer_pct = 100 * transfer_weighted_n / country_weighted_n
+    outward_pct = 100 * outward_weighted_n / election_weighted_n,
+    inward_pct = 100 * inward_weighted_n / election_weighted_n,
+    net_pct = 100 * net_weighted_n / election_weighted_n
+  )
+
+net_exchanges <- election_net_exchanges %>%
+  group_by(iso2c_file, party_label) %>%
+  summarise(
+    first_year = min(year, na.rm = TRUE),
+    last_year = max(year, na.rm = TRUE),
+    n_elections = n_distinct(election_id),
+    outward_pct = mean(outward_pct, na.rm = TRUE),
+    inward_pct = mean(inward_pct, na.rm = TRUE),
+    net_pct = mean(net_pct, na.rm = TRUE),
+    .groups = "drop"
   ) %>%
-  arrange(iso2c_file, net_pct)
+  left_join(selected_parties, by = c("iso2c_file", "party_label")) %>%
+  mutate(
+    country_panel = paste0(
+      country_label,
+      " (",
+      first_year,
+      "-",
+      last_year,
+      ")"
+    )
+  ) %>%
+  arrange(iso2c_file, party_order)
+
+readr::write_csv(
+  election_net_exchanges,
+  file.path(output_dir, "country_election_net_social_democratic_exchanges.csv")
+)
 
 readr::write_csv(
   net_exchanges,
@@ -384,53 +384,32 @@ saveRDS(
 # 6. Plot
 # ------------------------------------------------
 
+panel_levels <- net_exchanges %>%
+  distinct(iso2c_file, country_panel) %>%
+  arrange(match(iso2c_file, target_countries)) %>%
+  pull(country_panel)
+
+party_levels <- net_exchanges %>%
+  arrange(match(iso2c_file, target_countries), desc(party_order)) %>%
+  mutate(party_panel_label = paste(party_label, country_panel, sep = "__")) %>%
+  pull(party_panel_label)
+
 plot_data <- net_exchanges %>%
   mutate(
-    country_label = factor(
-      country_label,
-      levels = country_labels[target_countries]
-    )
-  ) %>%
-  arrange(country_label, desc(net_pct)) %>%
-  mutate(
-    party_panel_label = paste(party_label, country_label, sep = "__")
+    country_panel = factor(country_panel, levels = panel_levels),
+    party_panel_label = paste(party_label, country_panel, sep = "__"),
+    party_panel_label = factor(party_panel_label, levels = party_levels)
   )
 
-plot_data$party_panel_label <- factor(
-  plot_data$party_panel_label,
-  levels = unique(plot_data$party_panel_label)
-)
-
 max_abs_net <- max(abs(plot_data$net_pct), na.rm = TRUE)
-x_limit <- max_abs_net * 1.25
-
-if (!is.finite(x_limit) || x_limit == 0) {
-  x_limit <- 1
-}
+x_limit <- max(0.8, ceiling(max_abs_net * 10) / 10)
 
 p <- ggplot(
   plot_data,
   aes(x = net_pct, y = party_panel_label)
 ) +
-  geom_col(
-    aes(fill = net_pct >= 0),
-    width = 0.7,
-    show.legend = FALSE
-  ) +
-  scale_fill_manual(
-    values = c(
-      "TRUE" = "#9ccc9c",
-      "FALSE" = "#ee9a9a"
-    )
-  ) +
-  geom_vline(xintercept = 0, linewidth = 0.4) +
-  geom_text(
-    aes(
-      label = sprintf("%+.1f", net_pct),
-      hjust = ifelse(net_pct >= 0, -0.15, 1.15)
-    ),
-    size = 3
-  ) +
+  geom_col(fill = "grey35", width = 0.72) +
+  geom_vline(xintercept = 0, linewidth = 0.35, colour = "grey25") +
   scale_y_discrete(
     labels = function(x) sub("__.*$", "", x)
   ) +
@@ -439,37 +418,36 @@ p <- ggplot(
     clip = "off"
   ) +
   facet_wrap(
-    ~ country_label,
+    ~ country_panel,
     ncol = 2,
     scales = "free_y"
   ) +
   labs(
-    title = "",
-    x = "Net exchange with social democrats (percentage points)",
+    x = "Net balance (percentage points of electorate)",
     y = NULL
   ) +
-  theme_minimal(base_size = 10) +
+  theme_grey(base_size = 9) +
   theme(
-    strip.text = element_text(face = "bold", size = 10),
+    strip.text = element_text(face = "bold", size = 8),
+    axis.text.y = element_text(size = 7),
+    axis.title.x = element_text(size = 8),
     panel.grid.minor = element_blank(),
-    panel.grid.major.y = element_blank(),
-    axis.text.y = element_text(size = 9),
-    plot.margin = margin(5.5, 28, 5.5, 5.5)
+    plot.margin = margin(5.5, 8, 5.5, 5.5)
   )
 
 ggsave(
   filename = file.path(output_dir, "figure_country_net_social_democratic_exchanges.png"),
   plot = p,
-  width = 11,
-  height = 8,
+  width = 6.6,
+  height = 5,
   dpi = 300
 )
 
 ggsave(
   filename = file.path(output_dir, "figure_country_net_social_democratic_exchanges.pdf"),
   plot = p,
-  width = 11,
-  height = 8
+  width = 6.6,
+  height = 5
 )
 
-message("Saved country net exchange plot and table to: ", output_dir)
+message("Saved country net exchange plot and tables to: ", output_dir)
