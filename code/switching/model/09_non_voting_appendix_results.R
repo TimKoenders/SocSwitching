@@ -336,6 +336,18 @@ make_non_voting_combined_data <- function(
     )
 }
 
+nice_symmetric_limit <- function(x, padding = 1.08) {
+  x_max <- max(abs(x), na.rm = TRUE)
+
+  if (!is.finite(x_max) || x_max == 0) {
+    return(0.01)
+  }
+
+  padded_max <- x_max * padding
+  magnitude <- 10^floor(log10(padded_max))
+  ceiling(padded_max / magnitude) * magnitude
+}
+
 make_x_scales <- function(outward_limit, inward_limit, net_limit) {
   list(
     outward = scale_x_continuous(
@@ -353,6 +365,23 @@ make_x_scales <- function(outward_limit, inward_limit, net_limit) {
       breaks = seq(-net_limit, net_limit, length.out = 5),
       labels = function(x) sprintf("%.1f", 100 * x)
     )
+  )
+}
+
+make_x_scales_from_data <- function(plot_data) {
+  flow_limit <- function(flow_name) {
+    flow_data <- plot_data %>%
+      dplyr::filter(flow_label == flow_name)
+
+    nice_symmetric_limit(
+      c(flow_data$conf.low, flow_data$conf.high)
+    )
+  }
+
+  make_x_scales(
+    outward_limit = flow_limit("Outward switching"),
+    inward_limit = flow_limit("Inward switching"),
+    net_limit = flow_limit("Net effect")
   )
 }
 
@@ -571,11 +600,7 @@ if (nrow(salience_panel_count) != 9) {
 fig_salience_non_voting <- plot_non_voting_effects(
   plot_data = salience_non_voting_plot_data,
   row_facet = "predictor_label",
-  x_scales = make_x_scales(
-    outward_limit = 0.02,
-    inward_limit = 0.005,
-    net_limit = 0.010
-  )
+  x_scales = make_x_scales_from_data(salience_non_voting_plot_data)
 )
 
 print(fig_salience_non_voting)
@@ -705,11 +730,7 @@ if (nrow(supply_panel_count) != 9) {
 fig_supply_non_voting <- plot_non_voting_effects(
   plot_data = supply_non_voting_plot_data,
   row_facet = "predictor_label",
-  x_scales = make_x_scales(
-    outward_limit = 0.015,
-    inward_limit = 0.005,
-    net_limit = 0.010
-  )
+  x_scales = make_x_scales_from_data(supply_non_voting_plot_data)
 )
 
 print(fig_supply_non_voting)
@@ -813,11 +834,7 @@ if (nrow(appendix_panel_count) != 6) {
 fig_supply_alt_non_voting <- plot_non_voting_effects(
   plot_data = appendix_non_voting_plot_data,
   row_facet = "operationalisation_label",
-  x_scales = make_x_scales(
-    outward_limit = 0.015,
-    inward_limit = 0.005,
-    net_limit = 0.010
-  ),
+  x_scales = make_x_scales_from_data(appendix_non_voting_plot_data),
   strip_text_size = 9
 )
 
