@@ -114,14 +114,11 @@ packages <- c(
   "purrr",
   "stringr",
   "tidytext",
-  "mokken",
   "moments",
   "progressr"
 )
 
 ipak(packages)
-
-
 
 
 
