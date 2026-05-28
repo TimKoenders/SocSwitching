@@ -16,11 +16,16 @@ Researchers with authorized access can reproduce the analyses by obtaining the r
 
 ```text
 code/
+  00_check_inputs.R        # Verify local restricted inputs before running the pipeline
+  00_run_all.R             # Orchestrate checks, data preparation, models, and outputs
   switching/
     data_preparation/      # Project-specific preparation after voteswitchR-style harmonization
     descriptives/          # Descriptive plots and tables
     model/                 # Model estimation and result scripts
     utils/                 # Shared package and helper scripts
+config/
+  data_paths_template.yml  # Copy to data_paths.yml and adapt local paths
+  required_inputs.csv      # Source-level manifest used by the input checker
 data/
   README.md                # Local data folder instructions
   data_manifest.csv        # Machine-readable guide to required data groups
@@ -36,10 +41,12 @@ The analyses are reproducible conditional on lawful access to the underlying dat
 
 1. Obtain the required survey, party, election, and contextual datasets from the original providers.
 2. Follow the `voteswitchR` harmonization workflow for the baseline vote-switching infrastructure.
-3. Add the project-specific CSES Module 6 election extensions locally.
-4. Place the local harmonized and derived files under `data/` using the structure described in [DATA_AVAILABILITY.md](DATA_AVAILABILITY.md).
-5. Install and load the required R packages through `code/switching/utils/packages.R`.
-6. Run the SocSwitch data-preparation, model, descriptive, and result scripts to recreate figures and tables.
+3. Place the original `.dta`, `.sav`, or equivalent survey files in the local data folders expected by the country scripts.
+4. Copy `config/data_paths_template.yml` to `config/data_paths.yml` and adapt local paths when the data are not stored under the default repository folders.
+5. Run `Rscript code/00_check_inputs.R` to verify the local setup.
+6. Run `Rscript code/00_run_all.R --targets=data` to rebuild the analysis data, or `Rscript code/00_run_all.R --targets=all` to run the complete workflow.
+
+The microdata stage runs `code/switching/data_preparation/building_micro_data/`: scripts `01`-`31` prepare country files through the Cohen/`voteswitchR` harmonization infrastructure, scripts `33` onward add the manually coded CSES Module 6 election studies, and `32_append_country_files.R` appends the country files. The appended micro-level files are then processed by `code/switching/data_preparation/building_analysis_data/`.
 
 More detailed instructions are in [REPRODUCIBILITY.md](REPRODUCIBILITY.md).
 
@@ -51,6 +58,8 @@ The project is written in R. Package installation and loading are centralized in
 source("code/switching/utils/packages.R")
 load_packages()
 ```
+
+The same package helper is used by the workflow scripts.
 
 ## Citation
 

@@ -30,8 +30,14 @@ plots/**
 *.csv
 *.tsv
 
+# Local path configuration
+config/data_paths.yml
+
 # Keep repository metadata files even when extensions above are ignored
 !README.md
 !DATA_AVAILABILITY.md
 !REPRODUCIBILITY.md
+!config/
+!config/data_paths_template.yml
+!config/required_inputs.csv
 !data/data_manifest.csv

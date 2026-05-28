@@ -1,0 +1,17 @@
+# Copy this file to config/data_paths.yml and edit paths for your machine.
+# config/data_paths.yml is ignored by Git.
+
+repo_root: "."
+data_root: "data"
+micro_dir: "data/micro"
+raw_files_dir: "data/files"
+processed_dir: "data/processed"
+analysis_dir: "data/analysis"
+ess_dir: "data/ess"
+eurobarometer_dir: "data/eurobarometer"
+manifesto_dir: "data/manifesto"
+parlgov_dir: "data/parlgov"
+
+# External files stored outside the repository can be set here.
+populist_file: "data/external/The PopuList 3.0.csv"
+enp_file: "data/external/Electoral-fragmentation-2026.xlsx"

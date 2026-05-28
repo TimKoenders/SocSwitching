@@ -22,7 +22,7 @@ SocSwitch does not duplicate the full `voteswitchR` harmonization documentation.
 
 ```text
 data/
-  micro/          # Restricted files used by voteswitchR and manual CSES 6 additions
+  micro/          # Restricted .dta/.sav/equivalent files used by country scripts
   ess/            # European Social Survey files used for validation/contextual checks
   eurobarometer/  # Eurobarometer files used for demand-side salience measures
   manifesto/      # Manifesto Project / MARPOR files
@@ -52,13 +52,19 @@ These folders are intentionally ignored by Git except for README files and the m
 
 The file [data/data_manifest.csv](data/data_manifest.csv) gives a machine-readable overview of the expected data groups, local folders, and redistribution status. It is source-level because the restricted files are obtained directly from third-party providers and can differ in file names or delivery formats.
 
+## Local File Names
+
+The country scripts in `code/switching/data_preparation/building_micro_data/` contain the expected names of the original `.dta`, `.sav`, or equivalent survey files. Download the restricted files from the original providers and store them in the local folders referenced by those scripts. Scripts `01`-`31` use the Cohen/`voteswitchR` harmonization infrastructure, scripts `33` onward contain the manually added CSES Module 6 election studies, and `32_append_country_files.R` combines the country-level outputs.
+
+The same information is summarized in `config/required_inputs.csv`. To adapt paths to a local machine, copy `config/data_paths_template.yml` to `config/data_paths.yml` and edit the folder locations. `config/data_paths.yml` is ignored by Git.
+
 ## Notes for Replicators
 
 1. Consult `voteswitchR` for the baseline vote-switching harmonization procedure.
 2. Obtain the raw files from the original providers.
-3. Apply the project-specific manual additions for CSES Module 6 elections.
-4. Place the locally generated harmonized and derived files in the expected directories.
-5. Run the SocSwitch data-preparation, model, and plotting scripts in order.
+3. Place the original files in the local folders named in the country scripts.
+4. Run `Rscript code/00_check_inputs.R`.
+5. Run `Rscript code/00_run_all.R --targets=data` for data preparation or `Rscript code/00_run_all.R --targets=all` for the complete workflow.
 6. Do not commit raw or processed restricted data to Git.
 
 Provider access conditions and file names are governed by the original data providers.

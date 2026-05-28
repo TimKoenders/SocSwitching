@@ -1,6 +1,6 @@
 data_group,local_folder,role,redistribution_status,access_note
-national_election_studies,data/micro,Respondent-level vote and lagged-vote survey data,not_redistributed,Access varies by country and election; obtain from original providers
-cses_modules,data/micro,Comparative election-study files including manually added CSES Module 6 contexts,not_redistributed,Download from CSES after accepting terms of use
+national_election_studies,data/micro,Respondent-level vote and lagged-vote survey data in original .dta/.sav/equivalent formats,not_redistributed,Access varies by country and election; obtain from original providers and store under the folders referenced by country scripts
+cses_modules,data/micro,Comparative election-study files including manually added CSES Module 6 contexts,not_redistributed,Download from CSES after accepting terms of use and store under the folders referenced by country scripts
 european_voter_or_continuity_files,data/micro,Historical vote-switching survey files,not_redistributed,May require request through GESIS or national providers
 voteswitchR_harmonized_switching_outputs,data/processed,Upstream harmonized vote-switching infrastructure produced with or compatible with voteswitchR,not_redistributed_here,See https://github.com/denis-cohen/voteswitchR; SocSwitch does not redistribute or re-document raw harmonization
 cses_6_manual_extensions,data/processed,Project-specific manual extensions for additional CSES Module 6 elections,not_redistributed,Create locally after obtaining CSES 6 files and respecting CSES terms
