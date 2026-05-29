@@ -8,7 +8,7 @@ The underlying vote-switching harmonization procedure is not reimplemented here.
 
 ## About
 
-`SocSwitching` is a reproducible R workflow for studying how social-democratic parties exchange voters with other party families across multi-party systems. It is built as an open-code, restricted-data research repository: the full analysis logic is version controlled, while the original election-study files remain local because they are governed by third-party access conditions.
+`SocSwitching` is a reproducible R workflow for studying how social-democratic parties exchange voters with other party families across multi-party systems. It is built as an open-code, restricted-data research repository. The full analysis logic is version controlled. The original election-study files remain local because they are governed by third-party access conditions.
 
 The repository provides:
 
@@ -52,7 +52,7 @@ VALIDATION.md              # Commands used to verify the repository workflow
 
 ## Workflow Map
 
-The repository is organized around one reproducible project pipeline. The raw survey files remain local and restricted, while the code, manifests, and execution order are tracked.
+The repository is organized around one reproducible project pipeline. The raw survey files remain local and restricted. The code, manifests, and execution order are tracked.
 
 | Stage | Command target | Main scripts | Main local outputs |
 | --- | --- | --- | --- |
