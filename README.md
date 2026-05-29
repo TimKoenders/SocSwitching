@@ -6,6 +6,21 @@ This project studies voter flows between social-democratic parties and their com
 
 The underlying vote-switching harmonization procedure is not reimplemented here. It follows the [`voteswitchR`](https://github.com/denis-cohen/voteswitchR) infrastructure for harmonizing national election studies. For this study, additional CSES Module 6 elections were added manually to extend the set of available electoral contexts.
 
+## About
+
+`SocSwitching` is a reproducible R workflow for studying how social-democratic parties exchange voters with other party families across multi-party systems. It is built as an open-code, restricted-data research repository: the full analysis logic is version controlled, while the original election-study files remain local because they are governed by third-party access conditions.
+
+The repository provides:
+
+- A single workflow entry point: `code/00_run_all.R`.
+- Input checks for local restricted files: `code/00_check_inputs.R`.
+- Project-specific data preparation after `voteswitchR`-style harmonization.
+- Scripts for model estimation, result extraction, descriptive figures, and appendix plots.
+- Machine-readable data manifests and local path templates.
+- Compact workflow logging under `data/analysis/logs/workflow/`.
+
+The intended use is straightforward: clone the repository, add the authorized local data files, configure local paths if needed, run the input checker, and then run the workflow targets documented below.
+
 ## Data Availability
 
 The raw respondent-level election studies used in this project are not redistributed in this repository. Many of the underlying national election studies and comparative survey files are governed by third-party terms of use, registration requirements, or restricted-access agreements. The rights to distribute those data remain with the original data providers.
