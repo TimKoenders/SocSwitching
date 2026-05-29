@@ -17,7 +17,7 @@ suppressPackageStartupMessages({
 # ------------------------------------------------
 # 1. Set local base path and load internal metadata
 # ------------------------------------------------
-base_path <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"
+base_path <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")
 
 available_data <- getFromNamespace("available_data", "voteswitchR")
 

@@ -18,8 +18,8 @@ suppressPackageStartupMessages({
 # ------------------------------------------------
 # 1. Paths
 # ------------------------------------------------
-path_parlgov <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/parlgov/parlgov-stable.xlsx"
-path_flow    <- here("data", "processed", "best_raked_imp_fam.rds")
+path_parlgov <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "parlgov", "parlgov-stable.xlsx")
+path_flow    <- here("data", "micro", "all_countries_df_long_valid_both.RData")
 path_vote_shares <- here("data", "processed", "parlgov_supply_vote_shares.rds")
 
 path_out_long <- here("data", "processed", "parlgov_vote_shares_long.rds")
@@ -43,7 +43,14 @@ party_raw <- readxl::read_excel(
   sheet = "party"
 )
 
-flow_data <- readRDS(path_flow)
+flow_env <- new.env(parent = emptyenv())
+load(path_flow, envir = flow_env)
+
+if (!exists("df_all", envir = flow_env)) {
+  stop("Object 'df_all' was not found after loading: ", path_flow)
+}
+
+flow_data <- get("df_all", envir = flow_env)
 
 # ------------------------------------------------
 # 3. Clean election data

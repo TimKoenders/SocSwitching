@@ -1,12 +1,13 @@
 data_group,local_folder,role,redistribution_status,access_note
-national_election_studies,data/micro,Respondent-level vote and lagged-vote survey data in original .dta/.sav/equivalent formats,not_redistributed,Access varies by country and election; obtain from original providers and store under the folders referenced by country scripts
-cses_modules,data/micro,Comparative election-study files including manually added CSES Module 6 contexts,not_redistributed,Download from CSES after accepting terms of use and store under the folders referenced by country scripts
-european_voter_or_continuity_files,data/micro,Historical vote-switching survey files,not_redistributed,May require request through GESIS or national providers
-voteswitchR_harmonized_switching_outputs,data/processed,Upstream harmonized vote-switching infrastructure produced with or compatible with voteswitchR,not_redistributed_here,See https://github.com/denis-cohen/voteswitchR; SocSwitch does not redistribute or re-document raw harmonization
-cses_6_manual_extensions,data/processed,Project-specific manual extensions for additional CSES Module 6 elections,not_redistributed,Create locally after obtaining CSES 6 files and respecting CSES terms
+national_election_studies,data/files,Respondent-level vote and lagged-vote survey data in original .dta/.sav/equivalent formats,not_redistributed,Access varies by country and election; obtain from original providers and store under the folders referenced by country scripts
+cses_modules,data/files,Comparative election-study files including manually added CSES Module 6 contexts,not_redistributed,Download from CSES after accepting terms of use and store under the folders referenced by country scripts
+european_voter_or_continuity_files,data/files,Historical vote-switching survey files,not_redistributed,May require request through GESIS or national providers
+voteswitchR_harmonized_switching_outputs,data/micro,Upstream harmonized vote-switching infrastructure produced with or compatible with voteswitchR,not_redistributed_here,See https://github.com/denis-cohen/voteswitchR; SocSwitch does not redistribute or re-document raw harmonization
+cses_6_manual_extensions,data/micro,Project-specific manual extensions for additional CSES Module 6 elections,not_redistributed,Create locally after obtaining CSES 6 files and respecting CSES terms
 manifesto_project,data/manifesto,Party positions and party metadata,not_redistributed,Download from Manifesto Project after accepting provider terms
 parlgov,data/parlgov,Party/election metadata and vote shares,not_redistributed_here,Obtain from ParlGov and cite provider
 eurobarometer,data/eurobarometer,Demand-side issue salience measures,not_redistributed,Obtain through official Eurobarometer/GESIS channels
 european_social_survey,data/ess,Validation and contextual survey measures where used,not_redistributed,Download from ESS after registration/terms acceptance
+cpds,data/external,Comparative Political Data Set macro controls,not_redistributed,Obtain according to CPDS provider terms
 generated_processed_data,data/processed,Locally generated intermediate files,not_redistributed,Recreate after voteswitchR-style harmonization and project-specific additions are available locally
 analysis_ready_data,data/analysis,Locally generated model inputs and outputs,not_redistributed,Recreate by running SocSwitch data-preparation and model scripts

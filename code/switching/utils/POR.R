@@ -66,12 +66,12 @@ convert_por_to_dta <- function(file_path) {
 }
 
 
-file1 <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files/fi1991/daF1088_eng.por"
-file2 <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files/fi1999/daF1042_eng.por"
-file3 <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files/be1999/p1693.por"
-file4 <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files/be1995/p1422.por"
-file5 <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files/nl1994/06740-0001-Data.por"
-file6 <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files/nl1998/02836-0001-Data.por"
+file1 <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files", "fi1991", "daF1088_eng.por")
+file2 <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files", "fi1999", "daF1042_eng.por")
+file3 <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files", "be1999", "p1693.por")
+file4 <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files", "be1995", "p1422.por")
+file5 <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files", "nl1994", "06740-0001-Data.por")
+file6 <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files", "nl1998", "02836-0001-Data.por")
 
 
 convert_por_to_dta(file1)
@@ -111,14 +111,14 @@ convert_por_to_dta2 <- function(file_path) {
 }
 
 
-file7 <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files/nl1989/p1000.por"
+file7 <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files", "nl1989", "p1000.por")
 convert_por_to_dta2(file7)
 
 
 library(haven)
 library(dplyr)
 
-file_dta <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files/nl1989/p1000.dta"
+file_dta <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files", "nl1989", "p1000.dta")
 
 df <- read_dta(file_dta)
 

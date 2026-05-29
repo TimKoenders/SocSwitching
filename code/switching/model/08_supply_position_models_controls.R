@@ -68,7 +68,7 @@ delta_step <- 1e-5
 # 1. Paths
 # ------------------------------------------------
 
-project_dir <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching"
+project_dir <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 
 analysis_dir <- file.path(project_dir, "data", "analysis")
 input_dir <- file.path(analysis_dir, "building_analysis_data")
@@ -76,7 +76,7 @@ input_dir <- file.path(analysis_dir, "building_analysis_data")
 output_dir <- file.path(
   analysis_dir,
   "models",
-  "sd_restricted_choice_set_mixed_conditional_logit_country_re_supply_position_change_controls"
+  "supply_position_change_controls"
 )
 
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
@@ -1664,7 +1664,7 @@ saveRDS(
     point_net_effects = point_net_effects,
     risk_set_shares = shares_point
   ),
-  file.path(output_dir, "all_restricted_choice_set_mixed_conditional_logit_country_re_results.rds")
+  file.path(output_dir, "all_model_results.rds")
 )
 
 # ------------------------------------------------
@@ -1754,7 +1754,7 @@ summarise_estimation_sample <- function(result_obj) {
   df_long <- result_obj$data
   
   respondent_level <- df_long %>%
-    dplyr::distinct(
+    dplyr::select(
       choice_id,
       iso2c_file,
       elec_id,
@@ -1764,7 +1764,8 @@ summarise_estimation_sample <- function(result_obj) {
         "cpds_match_status",
         "cpds_multiple_election_year_warning"
       ))
-    )
+    ) %>%
+    dplyr::distinct()
   
   sample_summary <- respondent_level %>%
     dplyr::summarise(

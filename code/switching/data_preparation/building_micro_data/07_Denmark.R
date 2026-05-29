@@ -10,22 +10,22 @@ options(stringsAsFactors = FALSE)
 # ------------------------------------------------
 # 0. Package checks
 # ------------------------------------------------
-required_shiny_version <- "1.7.2"
+required_packages <- c("voteswitchR", "shiny")
+missing_packages <- required_packages[!vapply(
+  required_packages,
+  requireNamespace,
+  logical(1),
+  quietly = TRUE
+)]
 
-if (!requireNamespace("remotes", quietly = TRUE)) {
-  install.packages("remotes")
+if (length(missing_packages) > 0) {
+  stop(
+    "Missing required package(s): ",
+    paste(missing_packages, collapse = ", "),
+    ". Install these before running the reproducibility workflow.",
+    call. = FALSE
+  )
 }
-
-if (!requireNamespace("voteswitchR", quietly = TRUE)) {
-  remotes::install_github("denis-cohen/voteswitchR")
-}
-
-if (!requireNamespace("shiny", quietly = TRUE) ||
-    as.character(utils::packageVersion("shiny")) != required_shiny_version) {
-  message("Installing shiny ", required_shiny_version, " for build_data_file() compatibility...")
-  remotes::install_version("shiny", version = required_shiny_version, upgrade = "never")
-}
-
 suppressPackageStartupMessages({
   library(voteswitchR)
   library(shiny)
@@ -47,79 +47,22 @@ cat("========================================\n\n")
 # 2. Launch the Shiny app for data procurement/build
 #    OR load a previously saved data_file object
 # ------------------------------------------------
-data_file <- voteswitchR::build_data_file()
+# data_file is loaded from the generated voteswitchR country bundle below.
 
 # ------------------------------------------------
-# 3. Correct variable names
+# 3. Raw-data corrections
 # ------------------------------------------------
-# 2005
-folder <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files/dk2005"
-file   <- file.path(folder, "data18184.dta")
-raw_dk2005 <- read_dta(file)
-names(raw_dk2005) <- tolower(names(raw_dk2005))
-grep("356", names(raw_dk2005), value = TRUE)
-if (!"ov_v356" %in% names(raw_dk2005) && "v356" %in% names(raw_dk2005)) {
-  raw_dk2005 <- raw_dk2005 %>%
-    mutate(ov_v356 = v356)
-}
-write_dta(raw_dk2005, file)
-cat("Corrected file saved and overwritten:", file, "\n")
+# The Denmark voteswitchR bundle loaded below already contains the harmonized
+# country data used by this project. The reproducibility workflow should not
+# edit restricted raw input files in data/files.
 
-# 2011
-file_dk2011 <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files/dk2011/ElectionStudy-2011_F1.dta"
-x <- read_dta(file_dk2011)
-stopifnot("V8" %in% names(x))
-if (!"V6" %in% names(x)) {
-  birth_year <- suppressWarnings(as.numeric(x$V8))
-  
-  x <- x %>%
-    mutate(
-      V6 = ifelse(
-        !is.na(birth_year) &
-          birth_year >= 1890 &
-          birth_year <= 2011,
-        2011 - birth_year,
-        NA_real_
-      )
-    )
-  attr(x$V6, "label") <- "Derived age from V8 birth year: 2011 - V8"
-  
-  write_dta(x, file_dk2011)
-}
-ns <- asNamespace("voteswitchR")
-unlockBinding("available_data", ns)
-available_data <- get("available_data", envir = ns)
-cols_to_upper <- c(
-  "vote", "l_vote", "pid", "pid2", "pid_any",
-  "male", "age", "lr_self",
-  "lr_A", "lr_B", "lr_C", "lr_D", "lr_E", "lr_F", "lr_G", "lr_H",
-  "like_A", "like_B", "like_C", "like_D", "like_E", "like_F", "like_G", "like_H",
-  "strength1", "strength2"
-)
-dk_row <- available_data$elec_id == "DK-2011-09"
-available_data <- available_data %>%
-  mutate(
-    dwght = if_else(elec_id == "DK-2011-09", NA_character_, dwght),
-    swght = if_else(elec_id == "DK-2011-09", NA_character_, swght)
-  )
-available_data[dk_row, cols_to_upper] <-
-  lapply(
-    available_data[dk_row, cols_to_upper, drop = FALSE],
-    function(z) ifelse(is.na(z), z, toupper(z))
-  )
-available_data$age[dk_row] <- "V6"
-assign("available_data", available_data, envir = ns)
-lockBinding("available_data", ns)
-
-
-----------------------------------------
 # 4. Set country-specific inputs
 # ------------------------------------------------
 country_prefix <- "DK"
 country_name   <- "Denmark"
 
-input_rdata  <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/micro/dk_data_file.RData"
-output_rdata <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/micro/dk_df_long.RData"
+input_rdata  <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "micro", "dk_data_file.RData")
+output_rdata <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "micro", "dk_df_long.RData")
 
 # ------------------------------------------------
 # 5. Load built country data_file object
@@ -646,7 +589,7 @@ df_long_valid_now  <- coerce_types(df_long_valid_now)
 df_long_valid_lag  <- coerce_types(df_long_valid_lag)
 df_long_valid_both <- coerce_types(df_long_valid_both)
 
-output_dir <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/micro"
+output_dir <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "micro")
 
 output_rdata_full <- file.path(output_dir, "dk_df_long_full.RData")
 output_rdata_now  <- file.path(output_dir, "dk_df_long_valid_now.RData")

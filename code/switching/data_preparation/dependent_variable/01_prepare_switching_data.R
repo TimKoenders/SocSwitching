@@ -29,7 +29,7 @@ suppressPackageStartupMessages({
 # 1. Paths
 # ------------------------------------------------
 
-project_dir <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching"
+project_dir <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 
 path_micro <- file.path(
   project_dir,
@@ -38,7 +38,7 @@ path_micro <- file.path(
   "all_countries_df_long_valid_both.RData"
 )
 
-path_populist <- "C:/Users/koend/OneDrive/Bureaublad/UVA/Data/PopuList/The PopuList 3.0.csv"
+path_populist <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "external", "The PopuList 3.0.csv")
 
 output_dir <- file.path(project_dir, "data", "processed")
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)

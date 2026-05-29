@@ -11,26 +11,22 @@ options(stringsAsFactors = FALSE)
 # ------------------------------------------------
 # 0. Package checks
 # ------------------------------------------------
+required_packages <- c("voteswitchR", "shiny")
+missing_packages <- required_packages[!vapply(
+  required_packages,
+  requireNamespace,
+  logical(1),
+  quietly = TRUE
+)]
 
-required_shiny_version <- "1.7.2"
-
-if (!requireNamespace("remotes", quietly = TRUE)) {
-  install.packages("remotes")
-}
-
-if (!requireNamespace("voteswitchR", quietly = TRUE)) {
-  remotes::install_github("denis-cohen/voteswitchR")
-}
-
-if (!requireNamespace("shiny", quietly = TRUE) ||
-    as.character(utils::packageVersion("shiny")) != required_shiny_version) {
-  remotes::install_version(
-    "shiny",
-    version = required_shiny_version,
-    upgrade = "never"
+if (length(missing_packages) > 0) {
+  stop(
+    "Missing required package(s): ",
+    paste(missing_packages, collapse = ", "),
+    ". Install these before running the reproducibility workflow.",
+    call. = FALSE
   )
 }
-
 suppressPackageStartupMessages({
   library(voteswitchR)
   library(shiny)
@@ -47,8 +43,8 @@ suppressPackageStartupMessages({
 country_prefix <- "IE"
 country_name   <- "Ireland"
 
-input_rdata <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/micro/ie_data_file.RData"
-output_dir  <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/micro"
+input_rdata <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "micro", "ie_data_file.RData")
+output_dir  <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "micro")
 
 output_rdata_full <- file.path(output_dir, "ie_df_long_full.RData")
 output_rdata_now  <- file.path(output_dir, "ie_df_long_valid_now.RData")
@@ -70,7 +66,7 @@ print_header <- function(x) {
 if (file.exists(input_rdata)) {
   load(input_rdata)
 } else {
-  data_file <- voteswitchR::build_data_file()
+  # data_file is loaded from the generated voteswitchR country bundle below.
   save(data_file, file = input_rdata)
 }
 

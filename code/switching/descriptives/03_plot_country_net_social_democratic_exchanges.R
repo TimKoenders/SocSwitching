@@ -29,7 +29,7 @@ suppressPackageStartupMessages({
 # 1. Paths
 # ------------------------------------------------
 
-project_dir <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching"
+project_dir <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 
 analysis_dir <- file.path(project_dir, "data", "analysis")
 
@@ -431,6 +431,7 @@ country_net_exchanges <- full_join(
 
 net_exchanges <- selected_parties %>%
   filter(party_label != "Non-vote") %>%
+  select(-country_label) %>%
   left_join(
     country_net_exchanges,
     by = c("iso2c_file", "party_label")

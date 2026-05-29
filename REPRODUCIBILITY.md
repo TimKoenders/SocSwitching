@@ -33,14 +33,19 @@ Copy-Item config/data_paths_template.yml config/data_paths.yml
 
 ## 3. Install R Packages
 
-Package installation and loading are handled by the project helper:
+Install the required R packages once before running the workflow:
+
+```bash
+Rscript scripts/install_repro_deps.R
+```
+
+Package loading is handled by the project helper:
 
 ```r
 source("code/switching/utils/packages.R")
-load_packages()
 ```
 
-The helper installs missing CRAN packages and the GitHub dependency `denis-cohen/voteswitchR`.
+The workflow itself only checks and loads packages; it does not install or update packages during analysis runs.
 
 ## 4. Check Inputs
 

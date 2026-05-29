@@ -18,7 +18,7 @@ suppressPackageStartupMessages({
 # ------------------------------------------------
 # 1. Configuration
 # ------------------------------------------------
-folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"
+folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")
 survey_path     <- file.path(folder_location, "at20172024", "10874_da_en_v1_0.dta")
 
 CTX_ISO2C         <- "AT"
@@ -29,7 +29,7 @@ CTX_ELECTION_DATE <- as.Date("2019-09-29")
 CTX_ELECTION_LAG  <- as.Date("2017-10-15")
 CTX_YEAR          <- 2019L
 
-output_dir <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/micro/manual"
+output_dir <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "micro", "manual")
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 # ------------------------------------------------

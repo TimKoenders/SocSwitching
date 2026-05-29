@@ -15,7 +15,7 @@ suppressPackageStartupMessages({
   library(labelled)
 })
 
-folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"
+folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")
 cses_path       <- file.path(folder_location, "cses6", "cses6.dta")
 
 CTX_ISO2C         <- "PL"
@@ -27,7 +27,7 @@ CTX_ELECTION_LAG  <- as.Date("2019-10-13")
 CTX_YEAR          <- 2023L
 CTX_CONTEXT_CODE  <- "POL_2023"
 
-output_dir <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/micro/manual"
+output_dir <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "micro", "manual")
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 output_rdata_full <- file.path(output_dir, "pl_2023_df_long_full.RData")

@@ -52,14 +52,14 @@ suppressPackageStartupMessages({
 # 1. Paths
 # ------------------------------------------------
 
-project_dir <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching"
+project_dir <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 
 analysis_dir <- file.path(project_dir, "data", "analysis")
 
 model_dir <- file.path(
   analysis_dir,
   "models",
-  "sd_restricted_choice_set_mixed_conditional_logit_country_re_supply_position_change"
+  "supply_position_change"
 )
 
 figure_dir <- file.path(
@@ -122,6 +122,9 @@ path_alt_net <- file.path(
   "supply_position_change_all_operationalisations_net_effects_with_delta_ci.rds"
 )
 
+has_alt_supply_operationalisations <- file.exists(path_alt_ames) &&
+  file.exists(path_alt_net)
+
 if (!file.exists(path_coefficients)) {
   stop("Coefficient file not found: ", path_coefficients)
 }
@@ -166,7 +169,18 @@ supply_predictor_pattern <- paste(
 
 relabel_predictor <- function(df) {
   if (!"predictor_label" %in% names(df)) {
-    return(df)
+    df <- df %>%
+      dplyr::mutate(
+        predictor_label = dplyr::case_when(
+          predictor == "sd_libcons_move_std" ~
+            "Change in SD cultural position",
+          predictor == "sd_stateconomy_move_std" ~
+            "Change in SD state-economy position",
+          predictor == "sd_investmentconsumption_move_std" ~
+            "Change in SD investment-consumption position",
+          TRUE ~ NA_character_
+        )
+      )
   }
   
   df %>%
@@ -527,71 +541,74 @@ if (uncertainty_available) {
     "Main-folder net-effect uncertainty results"
   )
   
-  if (!file.exists(path_alt_ames) || !file.exists(path_alt_net)) {
-    stop(
-      "The main plot requires the Abou-Chadi/Wagner investment-consumption results. Expected files were not found:\n",
-      path_alt_ames, "\n",
-      path_alt_net
+  if (has_alt_supply_operationalisations) {
+    alt_ame_results_all <- readRDS(path_alt_ames) %>%
+      normalise_uncertainty_summary() %>%
+      relabel_predictor()
+    
+    alt_net_results_all <- readRDS(path_alt_net) %>%
+      normalise_uncertainty_summary() %>%
+      relabel_predictor()
+    
+    check_required_cols(
+      alt_ame_results_all,
+      c(required_ame_cols, "operationalisation"),
+      "All-operationalisations AME uncertainty results"
     )
+    
+    check_required_cols(
+      alt_net_results_all,
+      c(required_net_cols, "operationalisation"),
+      "All-operationalisations net-effect uncertainty results"
+    )
+    
+    main_ame_investmentconsumption <- alt_ame_results_all %>%
+      dplyr::filter(
+        operationalisation == "marpor_abou_chadi_wagner",
+        predictor == "sd_investmentconsumption_move_std"
+      )
+    
+    main_net_investmentconsumption <- alt_net_results_all %>%
+      dplyr::filter(
+        operationalisation == "marpor_abou_chadi_wagner",
+        predictor == "sd_investmentconsumption_move_std"
+      )
+    
+    if (nrow(main_ame_investmentconsumption) == 0) {
+      stop(
+        "No Abou-Chadi/Wagner AME rows were found for sd_investmentconsumption_move_std."
+      )
+    }
+    
+    if (nrow(main_net_investmentconsumption) == 0) {
+      stop(
+        "No Abou-Chadi/Wagner net-effect rows were found for sd_investmentconsumption_move_std."
+      )
+    }
+    
+    ame_results <- ame_results_main_folder %>%
+      dplyr::filter(
+        predictor %in% c("sd_stateconomy_move_std", "sd_libcons_move_std")
+      ) %>%
+      dplyr::bind_rows(main_ame_investmentconsumption) %>%
+      relabel_predictor()
+    
+    net_results <- net_results_main_folder %>%
+      dplyr::filter(
+        predictor %in% c("sd_stateconomy_move_std", "sd_libcons_move_std")
+      ) %>%
+      dplyr::bind_rows(main_net_investmentconsumption) %>%
+      relabel_predictor()
+  } else {
+    cat(
+      "\nCombined supply-position operationalisation files not found; ",
+      "using the main supply-position results for all main plots.\n",
+      sep = ""
+    )
+    
+    ame_results <- ame_results_main_folder
+    net_results <- net_results_main_folder
   }
-  
-  alt_ame_results_all <- readRDS(path_alt_ames) %>%
-    normalise_uncertainty_summary() %>%
-    relabel_predictor()
-  
-  alt_net_results_all <- readRDS(path_alt_net) %>%
-    normalise_uncertainty_summary() %>%
-    relabel_predictor()
-  
-  check_required_cols(
-    alt_ame_results_all,
-    c(required_ame_cols, "operationalisation"),
-    "All-operationalisations AME uncertainty results"
-  )
-  
-  check_required_cols(
-    alt_net_results_all,
-    c(required_net_cols, "operationalisation"),
-    "All-operationalisations net-effect uncertainty results"
-  )
-  
-  main_ame_investmentconsumption <- alt_ame_results_all %>%
-    dplyr::filter(
-      operationalisation == "marpor_abou_chadi_wagner",
-      predictor == "sd_investmentconsumption_move_std"
-    )
-  
-  main_net_investmentconsumption <- alt_net_results_all %>%
-    dplyr::filter(
-      operationalisation == "marpor_abou_chadi_wagner",
-      predictor == "sd_investmentconsumption_move_std"
-    )
-  
-  if (nrow(main_ame_investmentconsumption) == 0) {
-    stop(
-      "No Abou-Chadi/Wagner AME rows were found for sd_investmentconsumption_move_std."
-    )
-  }
-  
-  if (nrow(main_net_investmentconsumption) == 0) {
-    stop(
-      "No Abou-Chadi/Wagner net-effect rows were found for sd_investmentconsumption_move_std."
-    )
-  }
-  
-  ame_results <- ame_results_main_folder %>%
-    dplyr::filter(
-      predictor %in% c("sd_stateconomy_move_std", "sd_libcons_move_std")
-    ) %>%
-    dplyr::bind_rows(main_ame_investmentconsumption) %>%
-    relabel_predictor()
-  
-  net_results <- net_results_main_folder %>%
-    dplyr::filter(
-      predictor %in% c("sd_stateconomy_move_std", "sd_libcons_move_std")
-    ) %>%
-    dplyr::bind_rows(main_net_investmentconsumption) %>%
-    relabel_predictor()
   
   ame_plot_data <- ame_results %>%
     dplyr::mutate(
@@ -1029,7 +1046,11 @@ if (uncertainty_available) {
   
   cat("\n================================================\n")
   cat("AME and net-effect combined table, excluding non-voting\n")
-  cat("Investment-consumption row uses the Abou-Chadi/Wagner operationalisation.\n")
+  if (has_alt_supply_operationalisations) {
+    cat("Investment-consumption row uses the Abou-Chadi/Wagner operationalisation.\n")
+  } else {
+    cat("Rows use the main supply-position model results.\n")
+  }
   cat("================================================\n")
   print(combined_table, n = Inf, width = Inf)
   
@@ -1048,7 +1069,7 @@ if (uncertainty_available) {
 # 4b. Appendix plot: other investment-consumption operationalisations
 # ------------------------------------------------
 
-if (file.exists(path_alt_ames) && file.exists(path_alt_net)) {
+if (has_alt_supply_operationalisations) {
   
   cat("\nAppendix investment-consumption operationalisation AME file found:\n")
   cat(path_alt_ames, "\n")
@@ -1464,7 +1485,11 @@ if (file.exists(path_alt_ames) && file.exists(path_alt_net)) {
 
 cat("\n================================================\n")
 cat("Plotted supply-position AMEs and net effects with approximate p-values\n")
-cat("Investment-consumption row uses the Abou-Chadi/Wagner operationalisation.\n")
+if (has_alt_supply_operationalisations) {
+  cat("Investment-consumption row uses the Abou-Chadi/Wagner operationalisation.\n")
+} else {
+  cat("Rows use the main supply-position model results.\n")
+}
 cat("================================================\n")
 
 supply_combined_console <- combined_plot_data %>%
@@ -1595,30 +1620,34 @@ cat("\n================================================\n")
 cat("Alternative investment-compensation operationalisations with approximate p-values\n")
 cat("================================================\n")
 
-appendix_console <- appendix_combined_plot_data %>%
-  dplyr::mutate(
-    z_value = point_estimate / uncertainty_se,
-    p_value = 2 * stats::pnorm(abs(z_value), lower.tail = FALSE)
-  ) %>%
-  dplyr::arrange(
-    operationalisation_label,
-    flow_label,
-    actor_label
-  ) %>%
-  dplyr::transmute(
-    operationalisation = as.character(operationalisation_label),
-    flow = as.character(flow_label),
-    competitor = as.character(actor_label),
-    estimate_pp = format_num(100 * point_estimate, 3),
-    std_error_pp = format_num(100 * uncertainty_se, 3),
-    conf_low_pp = format_num(100 * conf.low, 3),
-    conf_high_pp = format_num(100 * conf.high, 3),
-    p_value = format_num(p_value, 3)
-  )
-
-print(appendix_console, n = Inf, width = Inf)
-
-cat("\nNote: P-values are approximate two-sided normal p-values based on the delta-method standard errors.\n")
+if (has_alt_supply_operationalisations) {
+  appendix_console <- appendix_combined_plot_data %>%
+    dplyr::mutate(
+      z_value = point_estimate / uncertainty_se,
+      p_value = 2 * stats::pnorm(abs(z_value), lower.tail = FALSE)
+    ) %>%
+    dplyr::arrange(
+      operationalisation_label,
+      flow_label,
+      actor_label
+    ) %>%
+    dplyr::transmute(
+      operationalisation = as.character(operationalisation_label),
+      flow = as.character(flow_label),
+      competitor = as.character(actor_label),
+      estimate_pp = format_num(100 * point_estimate, 3),
+      std_error_pp = format_num(100 * uncertainty_se, 3),
+      conf_low_pp = format_num(100 * conf.low, 3),
+      conf_high_pp = format_num(100 * conf.high, 3),
+      p_value = format_num(p_value, 3)
+    )
+  
+  print(appendix_console, n = Inf, width = Inf)
+  
+  cat("\nNote: P-values are approximate two-sided normal p-values based on the delta-method standard errors.\n")
+} else {
+  cat("Skipped because the combined operationalisation files are not available.\n")
+}
 
 
 
@@ -1659,7 +1688,7 @@ if (uncertainty_available) {
   cat("\nMain AME and net-effect figures and tables skipped because uncertainty files are not available.\n")
 }
 
-if (file.exists(path_alt_ames) && file.exists(path_alt_net)) {
+if (has_alt_supply_operationalisations) {
   
   cat("\nAppendix investment-consumption operationalisation figures:\n")
   cat(

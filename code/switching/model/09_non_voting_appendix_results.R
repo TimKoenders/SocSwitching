@@ -30,19 +30,19 @@ suppressPackageStartupMessages({
 # 1. Paths
 # ------------------------------------------------
 
-project_dir <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching"
+project_dir <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 
 analysis_dir <- file.path(project_dir, "data", "analysis")
 model_root_dir <- file.path(analysis_dir, "models")
 
 salience_model_dir <- file.path(
   model_root_dir,
-  "sd_restricted_choice_set_mixed_conditional_logit_country_re_salience_change"
+  "salience_change"
 )
 
 supply_model_dir <- file.path(
   model_root_dir,
-  "sd_restricted_choice_set_mixed_conditional_logit_country_re_supply_position_change"
+  "supply_position_change"
 )
 
 salience_figure_dir <- file.path(
@@ -647,21 +647,8 @@ path_alt_net <- file.path(
   "supply_position_change_all_operationalisations_net_effects_with_delta_ci.rds"
 )
 
-if (!file.exists(path_alt_ames) || !file.exists(path_alt_net)) {
-  stop(
-    "The supply-position non-voting figure requires the Abou-Chadi/Wagner investment-consumption results. Expected files were not found:\n",
-    path_alt_ames, "\n",
-    path_alt_net
-  )
-}
-
-alt_ame_results_all <- readRDS(path_alt_ames) %>%
-  normalise_uncertainty_summary() %>%
-  relabel_supply_predictor()
-
-alt_net_results_all <- readRDS(path_alt_net) %>%
-  normalise_uncertainty_summary() %>%
-  relabel_supply_predictor()
+has_alt_supply_operationalisations <- file.exists(path_alt_ames) &&
+  file.exists(path_alt_net)
 
 supply_ame_results_main_folder <- supply_results_main_folder$ame %>%
   relabel_supply_predictor()
@@ -669,43 +656,62 @@ supply_ame_results_main_folder <- supply_results_main_folder$ame %>%
 supply_net_results_main_folder <- supply_results_main_folder$net %>%
   relabel_supply_predictor()
 
-main_ame_investmentconsumption <- alt_ame_results_all %>%
-  dplyr::filter(
-    operationalisation == "marpor_abou_chadi_wagner",
-    predictor == "sd_investmentconsumption_move_std"
+if (has_alt_supply_operationalisations) {
+  alt_ame_results_all <- readRDS(path_alt_ames) %>%
+    normalise_uncertainty_summary() %>%
+    relabel_supply_predictor()
+  
+  alt_net_results_all <- readRDS(path_alt_net) %>%
+    normalise_uncertainty_summary() %>%
+    relabel_supply_predictor()
+  
+  main_ame_investmentconsumption <- alt_ame_results_all %>%
+    dplyr::filter(
+      operationalisation == "marpor_abou_chadi_wagner",
+      predictor == "sd_investmentconsumption_move_std"
+    )
+  
+  main_net_investmentconsumption <- alt_net_results_all %>%
+    dplyr::filter(
+      operationalisation == "marpor_abou_chadi_wagner",
+      predictor == "sd_investmentconsumption_move_std"
+    )
+  
+  if (nrow(main_ame_investmentconsumption) == 0) {
+    stop(
+      "No Abou-Chadi/Wagner AME rows were found for sd_investmentconsumption_move_std."
+    )
+  }
+  
+  if (nrow(main_net_investmentconsumption) == 0) {
+    stop(
+      "No Abou-Chadi/Wagner net-effect rows were found for sd_investmentconsumption_move_std."
+    )
+  }
+  
+  supply_ame_results <- supply_ame_results_main_folder %>%
+    dplyr::filter(
+      predictor %in% c("sd_stateconomy_move_std", "sd_libcons_move_std")
+    ) %>%
+    dplyr::bind_rows(main_ame_investmentconsumption) %>%
+    relabel_supply_predictor()
+  
+  supply_net_results <- supply_net_results_main_folder %>%
+    dplyr::filter(
+      predictor %in% c("sd_stateconomy_move_std", "sd_libcons_move_std")
+    ) %>%
+    dplyr::bind_rows(main_net_investmentconsumption) %>%
+    relabel_supply_predictor()
+} else {
+  cat(
+    "\nCombined supply-position operationalisation files not found; ",
+    "using the main supply-position results for all non-voting appendix rows.\n",
+    sep = ""
   )
-
-main_net_investmentconsumption <- alt_net_results_all %>%
-  dplyr::filter(
-    operationalisation == "marpor_abou_chadi_wagner",
-    predictor == "sd_investmentconsumption_move_std"
-  )
-
-if (nrow(main_ame_investmentconsumption) == 0) {
-  stop(
-    "No Abou-Chadi/Wagner AME rows were found for sd_investmentconsumption_move_std."
-  )
+  
+  supply_ame_results <- supply_ame_results_main_folder
+  supply_net_results <- supply_net_results_main_folder
 }
-
-if (nrow(main_net_investmentconsumption) == 0) {
-  stop(
-    "No Abou-Chadi/Wagner net-effect rows were found for sd_investmentconsumption_move_std."
-  )
-}
-
-supply_ame_results <- supply_ame_results_main_folder %>%
-  dplyr::filter(
-    predictor %in% c("sd_stateconomy_move_std", "sd_libcons_move_std")
-  ) %>%
-  dplyr::bind_rows(main_ame_investmentconsumption) %>%
-  relabel_supply_predictor()
-
-supply_net_results <- supply_net_results_main_folder %>%
-  dplyr::filter(
-    predictor %in% c("sd_stateconomy_move_std", "sd_libcons_move_std")
-  ) %>%
-  dplyr::bind_rows(main_net_investmentconsumption) %>%
-  relabel_supply_predictor()
 
 supply_non_voting_plot_data <- make_non_voting_combined_data(
   ame_results = supply_ame_results,
@@ -747,7 +753,11 @@ supply_non_voting_table <- write_non_voting_outputs(
 
 cat("\n================================================\n")
 cat("Supply-position non-voting AMEs and net effects\n")
-cat("Investment-consumption row uses the Abou-Chadi/Wagner operationalisation.\n")
+if (has_alt_supply_operationalisations) {
+  cat("Investment-consumption row uses the Abou-Chadi/Wagner operationalisation.\n")
+} else {
+  cat("Rows use the main supply-position model results.\n")
+}
 cat("================================================\n")
 print(supply_non_voting_table, n = Inf, width = Inf)
 
@@ -760,6 +770,7 @@ appendix_operationalisation_order <- c(
   "Education expansion vs. education limitation"
 )
 
+if (has_alt_supply_operationalisations) {
 alt_ame_results <- alt_ame_results_all %>%
   dplyr::filter(
     operationalisation %in% c(
@@ -855,6 +866,12 @@ cat("\n================================================\n")
 cat("Alternative investment-consumption non-voting AMEs and net effects\n")
 cat("================================================\n")
 print(appendix_non_voting_table, n = Inf, width = Inf)
+} else {
+  cat("\nAlternative supply-position operationalisation files not found. Skipping that appendix-only comparison.\n")
+  cat("Expected files:\n")
+  cat(path_alt_ames, "\n")
+  cat(path_alt_net, "\n")
+}
 
 # ------------------------------------------------
 # 6. Files written
@@ -880,12 +897,14 @@ cat("\nSupply-position non-voting tables:\n")
 cat(file.path(supply_table_dir, "supply_position_change_non_voting_outward_inward_net_reporting_table.csv"), "\n")
 cat(file.path(supply_table_dir, "supply_position_change_non_voting_outward_inward_net_latex_ready.csv"), "\n")
 
-cat("\nSupply-position alternative-operationalisation non-voting figures:\n")
-cat(file.path(alt_figure_dir, "supply_position_change_non_voting_appendix_investment_consumption_operationalisations_outward_inward_net.pdf"), "\n")
-cat(file.path(alt_figure_dir, "supply_position_change_non_voting_appendix_investment_consumption_operationalisations_outward_inward_net.png"), "\n")
-
-cat("\nSupply-position alternative-operationalisation non-voting tables:\n")
-cat(file.path(alt_table_dir, "supply_position_change_non_voting_appendix_investment_consumption_operationalisations_outward_inward_net_reporting_table.csv"), "\n")
-cat(file.path(alt_table_dir, "supply_position_change_non_voting_appendix_investment_consumption_operationalisations_outward_inward_net_latex_ready.csv"), "\n")
+if (has_alt_supply_operationalisations) {
+  cat("\nSupply-position alternative-operationalisation non-voting figures:\n")
+  cat(file.path(alt_figure_dir, "supply_position_change_non_voting_appendix_investment_consumption_operationalisations_outward_inward_net.pdf"), "\n")
+  cat(file.path(alt_figure_dir, "supply_position_change_non_voting_appendix_investment_consumption_operationalisations_outward_inward_net.png"), "\n")
+  
+  cat("\nSupply-position alternative-operationalisation non-voting tables:\n")
+  cat(file.path(alt_table_dir, "supply_position_change_non_voting_appendix_investment_consumption_operationalisations_outward_inward_net_reporting_table.csv"), "\n")
+  cat(file.path(alt_table_dir, "supply_position_change_non_voting_appendix_investment_consumption_operationalisations_outward_inward_net_latex_ready.csv"), "\n")
+}
 
 cat("\nScript completed successfully.\n")

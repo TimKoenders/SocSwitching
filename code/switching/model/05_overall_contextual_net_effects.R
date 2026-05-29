@@ -36,7 +36,7 @@ suppressPackageStartupMessages({
 # 1. Paths
 # ------------------------------------------------
 
-project_dir <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching"
+project_dir <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 
 analysis_dir <- file.path(project_dir, "data", "analysis")
 
@@ -47,12 +47,12 @@ model_root_dir <- file.path(
 
 salience_model_dir <- file.path(
   model_root_dir,
-  "sd_restricted_choice_set_mixed_conditional_logit_country_re_salience_change"
+  "salience_change"
 )
 
 supply_model_dir <- file.path(
   model_root_dir,
-  "sd_restricted_choice_set_mixed_conditional_logit_country_re_supply_position_change"
+  "supply_position_change"
 )
 
 output_dir <- file.path(
@@ -180,7 +180,6 @@ salience_net <- readRDS(path_salience_net) %>%
 # ------------------------------------------------
 
 stop_if_missing(path_supply_net_main)
-stop_if_missing(path_supply_net_all_operationalisations)
 
 supply_net_main <- readRDS(path_supply_net_main) %>%
   normalise_uncertainty_summary() %>%
@@ -188,22 +187,38 @@ supply_net_main <- readRDS(path_supply_net_main) %>%
   filter(
     predictor %in% c(
       "sd_libcons_move_std",
-      "sd_stateconomy_move_std"
+      "sd_stateconomy_move_std",
+      "sd_investmentconsumption_move_std"
     )
   )
 
-supply_net_investment_consumption <- readRDS(path_supply_net_all_operationalisations) %>%
-  normalise_uncertainty_summary() %>%
-  relabel_supply_predictor() %>%
-  filter(
-    operationalisation == "marpor_abou_chadi_wagner",
-    predictor == "sd_investmentconsumption_move_std"
+if (file.exists(path_supply_net_all_operationalisations)) {
+  supply_net_investment_consumption <- readRDS(path_supply_net_all_operationalisations) %>%
+    normalise_uncertainty_summary() %>%
+    relabel_supply_predictor() %>%
+    filter(
+      operationalisation == "marpor_abou_chadi_wagner",
+      predictor == "sd_investmentconsumption_move_std"
+    )
+  
+  if (nrow(supply_net_investment_consumption) > 0) {
+    supply_net_main <- supply_net_main %>%
+      filter(predictor != "sd_investmentconsumption_move_std")
+    
+    supply_net_main <- bind_rows(
+      supply_net_main,
+      supply_net_investment_consumption
+    )
+  }
+} else {
+  cat(
+    "\nCombined supply-position operationalisation file not found; ",
+    "using main supply-position net effects for all supply-side rows.\n",
+    sep = ""
   )
+}
 
-supply_net <- bind_rows(
-  supply_net_main,
-  supply_net_investment_consumption
-) %>%
+supply_net <- supply_net_main %>%
   mutate(
     context_side = "Supply side",
     contextual_variable = predictor_label
@@ -292,7 +307,6 @@ net_effect_decomposition <- contextual_net_effects %>%
     context_side,
     contextual_variable,
     competitor = as.character(actor_label),
-    net_effect = point_estimate,
     net_effect_pp = 100 * point_estimate
   ) %>%
   pivot_wider(
@@ -330,6 +344,39 @@ balance_checks <- net_effect_decomposition %>%
       left_right_balance_pp > 0 ~ "Mainstream-right gains outweigh far-left losses",
       TRUE ~ "Far-left and mainstream-right components offset"
     )
+  )
+
+overall_net_effects_latex <- overall_net_effects %>%
+  transmute(
+    context_side,
+    contextual_variable = as.character(contextual_variable),
+    overall_net_effect_pp = format_num(overall_net_effect_pp, 3),
+    average_net_effect_pp = format_num(average_net_effect_pp, 3),
+    n_competitors,
+    direction
+  )
+
+net_effect_decomposition_latex <- net_effect_decomposition %>%
+  transmute(
+    context_side,
+    contextual_variable = as.character(contextual_variable),
+    far_right = format_num(`Far right`, 3),
+    mainstream_right = format_num(`Mainstream right`, 3),
+    green = format_num(Green, 3),
+    far_left = format_num(`Far left`, 3),
+    overall_net_effect_pp = format_num(overall_net_effect_pp, 3),
+    average_net_effect_pp = format_num(average_net_effect_pp, 3),
+    direction
+  )
+
+balance_checks_latex <- balance_checks %>%
+  transmute(
+    context_side,
+    contextual_variable = as.character(contextual_variable),
+    green_far_right_balance_pp = format_num(green_far_right_balance_pp, 3),
+    green_vs_far_right_verdict,
+    left_right_balance_pp = format_num(left_right_balance_pp, 3),
+    left_right_verdict
   )
 
 # ------------------------------------------------
@@ -594,163 +641,6 @@ cat(file.path(output_dir, "overall_contextual_net_effects_decomposition_latex_re
 cat(file.path(output_dir, "overall_contextual_net_effects_balance_checks_latex_ready.csv"), "\n")
 
 cat("\nScript completed successfully.\n")
-
-
-# ------------------------------------------------
-# 14. Plot vote-share change effects
-# ------------------------------------------------
-
-suppressPackageStartupMessages({
-  library(ggplot2)
-})
-
-plot_dir <- file.path(
-  output_dir,
-  "figures"
-)
-
-dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
-
-vote_share_plot_data <- tidy_results %>%
-  dplyr::mutate(
-    context_side = dplyr::case_when(
-      term %in% demand_predictors ~ "Demand side",
-      term %in% supply_predictors ~ "Supply side",
-      TRUE ~ NA_character_
-    ),
-    contextual_variable_short = dplyr::recode(
-      predictor_label,
-      "Immigration salience" = "Immigration salience",
-      "Environment salience" = "Environment salience",
-      "Unemployment salience" = "Unemployment salience",
-      "SD cultural position" = "Cultural position",
-      "SD economic position" = "Economic position",
-      "SD social investment position" = "Social investment position"
-    ),
-    contextual_variable_short = factor(
-      contextual_variable_short,
-      levels = rev(c(
-        "Immigration salience",
-        "Environment salience",
-        "Unemployment salience",
-        "Cultural position",
-        "Economic position",
-        "Social investment position"
-      ))
-    ),
-    context_side = factor(
-      context_side,
-      levels = c("Demand side", "Supply side")
-    ),
-    party_family = factor(
-      party_family,
-      levels = c(
-        "Social democratic",
-        "Far right",
-        "Mainstream right",
-        "Green",
-        "Far left"
-      )
-    )
-  ) %>%
-  dplyr::filter(!is.na(context_side))
-
-fig_vote_share_change_effects <- ggplot(
-  vote_share_plot_data,
-  aes(
-    x = estimate_pp,
-    y = contextual_variable_short,
-    color = party_family,
-    shape = party_family
-  )
-) +
-  geom_vline(
-    xintercept = 0,
-    linewidth = 0.35,
-    linetype = "dashed"
-  ) +
-  geom_errorbarh(
-    aes(
-      xmin = conf.low_pp,
-      xmax = conf.high_pp
-    ),
-    height = 0,
-    linewidth = 0.45,
-    alpha = 0.75,
-    position = position_dodge(width = 0.55)
-  ) +
-  geom_point(
-    size = 2.4,
-    stroke = 0.6,
-    position = position_dodge(width = 0.55)
-  ) +
-  facet_grid(
-    context_side ~ .,
-    scales = "free_y",
-    space = "free_y"
-  ) +
-  scale_color_manual(
-    values = c(
-      "Social democratic" = "red3",
-      "Far right" = "grey20",
-      "Mainstream right" = "dodgerblue4",
-      "Green" = "darkgreen",
-      "Far left" = "purple4"
-    )
-  ) +
-  scale_shape_manual(
-    values = c(
-      "Social democratic" = 8,
-      "Far right" = 16,
-      "Mainstream right" = 17,
-      "Green" = 15,
-      "Far left" = 3
-    )
-  ) +
-  labs(
-    x = "Effect on party-family vote-share change, percentage points",
-    y = NULL,
-    color = NULL,
-    shape = NULL
-  ) +
-  theme_bw(base_size = 11) +
-  theme(
-    panel.grid.major.y = element_blank(),
-    panel.grid.minor = element_blank(),
-    strip.background = element_rect(fill = "white"),
-    strip.text = element_text(face = "bold", size = 12),
-    axis.text.y = element_text(size = 12),
-    axis.text.x = element_text(size = 9),
-    axis.title.x = element_text(size = 10),
-    legend.position = "bottom",
-    legend.box = "horizontal",
-    legend.text = element_text(size = 10),
-    legend.key.width = unit(0.8, "lines"),
-    panel.spacing = unit(0.7, "lines")
-  )
-
-print(fig_vote_share_change_effects)
-
-ggsave(
-  filename = file.path(
-    plot_dir,
-    "vote_share_change_effects_all_variables.pdf"
-  ),
-  plot = fig_vote_share_change_effects,
-  width = 9,
-  height = 5.8
-)
-
-ggsave(
-  filename = file.path(
-    plot_dir,
-    "vote_share_change_effects_all_variables.png"
-  ),
-  plot = fig_vote_share_change_effects,
-  width = 9,
-  height = 5.8,
-  dpi = 300
-)
 
 
 

@@ -58,7 +58,7 @@ suppressPackageStartupMessages({
 # 1. Paths
 # ------------------------------------------------
 
-project_dir <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching"
+project_dir <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 
 analysis_dir <- file.path(project_dir, "data", "analysis")
 
@@ -69,7 +69,7 @@ manifesto_file <- file.path(
   "MPDataset_MPDS2025a_stata14.dta"
 )
 
-enp_file <- "C:/Users/koend/OneDrive/Bureaublad/UVA/Data/Effective Number of Parties/Electoral-fragmentation-2026.xlsx"
+enp_file <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "external", "Electoral-fragmentation-2026.xlsx")
 
 primary_operationalisation <- "marpor_complete"
 

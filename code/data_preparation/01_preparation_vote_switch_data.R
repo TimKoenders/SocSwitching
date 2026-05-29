@@ -54,7 +54,7 @@ attach_party_labels <- function(dat, mappings){
 }
 
 # Define locations
-project_dir <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching"
+project_dir <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 context_dir <- file.path(project_dir, "code", "adding_contexts")
 
 #### Quality check ---------------------------------------------------------------
@@ -159,7 +159,7 @@ at_2019_txt  <- readLines(at_2019_file)
 
 at_2019_txt <- sub(
   '^folder_location <- ".*"$',
-  'folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"',
+  'folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")',
   at_2019_txt
 )
 
@@ -189,7 +189,7 @@ at_2024_txt  <- readLines(at_2024_file)
 
 at_2024_txt <- sub(
   '^folder_location <- ".*"$',
-  'folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"',
+  'folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")',
   at_2024_txt
 )
 
@@ -215,7 +215,7 @@ dnk_2022_txt  <- readLines(dnk_2022_file)
 
 dnk_2022_txt <- sub(
   '^folder_location <- ".*"$',
-  'folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"',
+  'folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")',
   dnk_2022_txt
 )
 
@@ -290,7 +290,7 @@ fra_2022_txt  <- readLines(fra_2022_file)
 
 fra_2022_txt <- sub(
   '^folder_location <- ".*"$',
-  'folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"',
+  'folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")',
   fra_2022_txt
 )
 
@@ -319,7 +319,7 @@ nzl_2023_txt  <- readLines(nzl_2023_file)
 
 nzl_2023_txt <- sub(
   '^folder_location <- ".*"$',
-  'folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"',
+  'folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")',
   nzl_2023_txt
 )
 
@@ -347,7 +347,7 @@ pol_2023_txt  <- readLines(pol_2023_file)
 
 pol_2023_txt <- sub(
   '^folder_location <- ".*"$',
-  'folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"',
+  'folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")',
   pol_2023_txt
 )
 
@@ -375,7 +375,7 @@ prt_2022_txt  <- readLines(prt_2022_file)
 
 prt_2022_txt <- sub(
   '^folder_location <- ".*"$',
-  'folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"',
+  'folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")',
   prt_2022_txt
 )
 
@@ -403,7 +403,7 @@ prt_2024_txt  <- readLines(prt_2024_file)
 
 prt_2024_txt <- sub(
   '^folder_location <- ".*"$',
-  'folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"',
+  'folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")',
   prt_2024_txt
 )
 
@@ -431,7 +431,7 @@ svk_2023_txt  <- readLines(svk_2023_file)
 
 svk_2023_txt <- sub(
   '^folder_location <- ".*"$',
-  'folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"',
+  'folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")',
   svk_2023_txt
 )
 
@@ -459,7 +459,7 @@ svn_2022_txt  <- readLines(svn_2022_file)
 
 svn_2022_txt <- sub(
   '^folder_location <- ".*"$',
-  'folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"',
+  'folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")',
   svn_2022_txt
 )
 
@@ -487,7 +487,7 @@ se_2022_txt  <- readLines(se_2022_file)
 
 se_2022_txt <- sub(
   '^folder_location <- ".*"$',
-  'folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"',
+  'folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")',
   se_2022_txt
 )
 
@@ -515,7 +515,7 @@ ch_2023_txt  <- readLines(ch_2023_file)
 
 ch_2023_txt <- sub(
   '^folder_location <- ".*"$',
-  'folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"',
+  'folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")',
   ch_2023_txt
 )
 

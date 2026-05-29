@@ -23,7 +23,7 @@ suppressPackageStartupMessages({
   library(tidyr)
 })
 
-data_dir <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/micro"
+data_dir <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "micro")
 
 output_file <- file.path(data_dir, "all_countries_df_long_valid_both.RData")
 
@@ -430,6 +430,12 @@ for (i in seq_len(nrow(manual_files))) {
 # ------------------------------------------------
 print_header("Basic checks and compact diagnostics")
 
+for (v in c("party_name", "family", "peid_map", "parlgov_id_1")) {
+  if (!v %in% names(df_all)) {
+    df_all[[v]] <- NA
+  }
+}
+
 df_all <- df_all %>%
   dplyr::mutate(
     party_name = dplyr::if_else(
@@ -460,7 +466,7 @@ df_all <- df_all %>%
   reorder_final_columns()
 
 required_vars <- c(
-  "iso2c_file", "source_file", "elec_id", "year", "edate",
+  "iso2c_file", "source_file", "elec_id", "year",
   "id", "weights", "age", "gender", "lrself", "satdem",
   "stack", "alt", "vote", "l_vote",
   "voted_now", "voted_lag",
@@ -478,48 +484,11 @@ stopifnot(length(missing_required) == 0)
 removed_vars_still_present <- intersect(
   c("age_group", "male", "lr_self", "stfdem", "election_date", "election_date_lag"),
   names(df_all)
-)
+  )
 
 cat("\nRemoved alternative variables still present:\n")
 print(removed_vars_still_present)
 stopifnot(length(removed_vars_still_present) == 0)
-
-# ------------------------------------------------
-# 4. Basic checks and compact diagnostics
-# ------------------------------------------------
-
-df_all <- df_all %>%
-  # Ensure 'family' exists before using it, and assign default value if missing
-  dplyr::mutate(
-    family = ifelse(!"family" %in% names(df_all), "non", family),  # Create 'family' if missing
-    family = as.character(family),  # Convert 'family' to character if it exists
-    
-    party_name = dplyr::if_else(
-      parfam_final == "non" & is.na(party),
-      "non-voters",
-      as.character(party)
-    ),
-    
-    # Replace missing 'family' values with "non"
-    family = ifelse(parfam_final == "non" & is.na(family), "non", family),
-    
-    # Handle missing 'parlgov_id_1' gracefully
-    peid_map = dplyr::case_when(
-      parfam_final == "non" ~ "non",
-      !is.na(peid_map) ~ as.character(peid_map),
-      !"parlgov_id_1" %in% names(df_all) ~ "non",  # Handle missing 'parlgov_id_1' gracefully
-      TRUE ~ paste0("stack_", stack)  # Fallback for when 'parlgov_id_1' doesn't exist
-    ),
-    
-    gender = as.character(gender),
-    age = as.numeric(age),
-    lrself = as.numeric(lrself),
-    satdem = as.numeric(satdem)
-  ) %>%
-  dplyr::select(
-    -dplyr::any_of(c("age_group", "male", "lr_self", "stfdem", "election_date", "election_date_lag"))
-  ) %>%
-  reorder_final_columns()
 
 # Reconstruct switching labels from matched alternatives
 df_all <- df_all %>%

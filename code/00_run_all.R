@@ -92,7 +92,10 @@ workflow <- list(
     "01_prepare_demand_salience.R",
     "02_prepare_supply_positions.R"
   )),
-  analysis = file.path("code", "switching", "data_preparation", "building_analysis_data", "01_build_analysis_data.R"),
+  analysis = file.path("code", "switching", "data_preparation", "building_analysis_data", c(
+    "01_build_analysis_data.R",
+    "02_add_cpds_controls.R"
+  )),
   models = file.path("code", "switching", "model", c(
     "01_demand_salience_models.R",
     "03_supply_positions_models.R",

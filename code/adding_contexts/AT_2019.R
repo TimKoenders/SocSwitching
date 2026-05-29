@@ -16,7 +16,7 @@ suppressPackageStartupMessages({
 # 1. CONFIGURATION (ELECTION CONTEXT)
 # ------------------------------------------------
 # Paths
-folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"
+folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")
 survey_path     <- file.path(folder_location, "at20172024", "10874_da_en_v1_0.dta")
 
 # Election identifiers

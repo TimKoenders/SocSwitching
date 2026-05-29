@@ -15,3 +15,4 @@ parlgov_dir: "data/parlgov"
 # External files stored outside the repository can be set here.
 populist_file: "data/external/The PopuList 3.0.csv"
 enp_file: "data/external/Electoral-fragmentation-2026.xlsx"
+cpds_file: "data/external/CPDS_1960-2023_Update_2025.dta"

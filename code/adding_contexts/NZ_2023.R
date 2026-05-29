@@ -12,7 +12,7 @@ suppressPackageStartupMessages({
 # ------------------------------------------------
 # 1. CONFIG (ELECTION-SPECIFIC)
 # ------------------------------------------------
-folder_location <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching/data/files"
+folder_location <- file.path(normalizePath(getwd(), winslash = "/", mustWork = TRUE), "data", "files")
 cses_path <- file.path(folder_location, "cses6", "cses6.dta")
 
 CTX_ISO2C         <- "NZ"

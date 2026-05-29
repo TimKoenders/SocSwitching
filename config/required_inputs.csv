@@ -50,4 +50,5 @@ context,Manifesto Project,,all,code/switching/data_preparation/independent_varia
 context,ParlGov,,all,code/switching/data_preparation/dependent_variable/00_prepare_vote_shares_parlgov.R,{parlgov_dir}/parlgov-stable.xlsx,TRUE,ParlGov workbook
 context,PopuList,,all,code/switching/data_preparation/dependent_variable/01_prepare_switching_data.R,{populist_file},TRUE,PopuList classification file
 context,Effective number of parties,,all,code/switching/data_preparation/independent_variables/02_prepare_supply_positions.R,{enp_file},TRUE,Electoral fragmentation workbook
+context,CPDS,,all,code/switching/data_preparation/building_analysis_data/02_add_cpds_controls.R,{cpds_file},TRUE,Comparative Political Data Set macro controls
 

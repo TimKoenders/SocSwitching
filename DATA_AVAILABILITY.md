@@ -47,7 +47,7 @@ These folders are intentionally ignored by Git except for README files and the m
 | ParlGov | Party and election metadata, vote shares, cabinet information | Public data source; cite according to ParlGov instructions. | `data/parlgov/` |
 | Eurobarometer | Demand-side issue salience measures | Access through GESIS or official Eurobarometer distribution channels; terms vary by file. | `data/eurobarometer/` |
 | European Social Survey | Validation and contextual individual-level measures where used | Download after registration and acceptance of ESS terms. | `data/ess/` |
-| CPDS or other macro controls | Country-year controls where used | Access according to provider terms. | `data/processed/` or `data/analysis/` |
+| CPDS or other macro controls | Country-year controls where used | Access according to provider terms. | `data/external/` |
 
 ## File Manifest
 

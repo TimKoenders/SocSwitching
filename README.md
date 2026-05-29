@@ -52,11 +52,10 @@ More detailed instructions are in [REPRODUCIBILITY.md](REPRODUCIBILITY.md).
 
 ## Software
 
-The project is written in R. Package installation and loading are centralized in `code/switching/utils/packages.R`; shared helpers are in `code/switching/utils/helper_functions.R`. Start an R session from the repository root and run:
+The project is written in R. Install dependencies once with `Rscript scripts/install_repro_deps.R`. Package loading is centralized in `code/switching/utils/packages.R`; shared helpers are in `code/switching/utils/helper_functions.R`. Start an R session from the repository root and run:
 
 ```r
 source("code/switching/utils/packages.R")
-load_packages()
 ```
 
 The same package helper is used by the workflow scripts.

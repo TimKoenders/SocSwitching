@@ -42,14 +42,14 @@ suppressPackageStartupMessages({
 # 1. Paths
 # ------------------------------------------------
 
-project_dir <- "C:/Users/koend/OneDrive/Bureaublad/UVA/R_Project/VoteSwitching/VoteSwitching"
+project_dir <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 
 analysis_dir <- file.path(project_dir, "data", "analysis")
 
 model_dir <- file.path(
   analysis_dir,
   "models",
-  "sd_restricted_choice_set_mixed_conditional_logit_country_re_salience_change"
+  "salience_change"
 )
 
 figure_dir <- file.path(
