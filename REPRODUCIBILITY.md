@@ -65,6 +65,8 @@ The full data-preparation stage can be launched with:
 Rscript code/00_run_all.R --targets=data
 ```
 
+By default, `code/00_run_all.R` keeps the console compact and writes full output for each child script to `data/analysis/logs/workflow/<timestamp>/`. To stream all child script output directly to the console, add `--verbose=true`.
+
 Internally, the data-preparation scripts run in the following order:
 
 ```text

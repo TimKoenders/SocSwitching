@@ -5,12 +5,14 @@
 #   Rscript code/00_run_all.R --targets=data
 #   Rscript code/00_run_all.R --targets=models,results,descriptives
 #   Rscript code/00_run_all.R --targets=all
+#   Rscript code/00_run_all.R --targets=data --verbose=true
 
 rm(list = ls())
 options(stringsAsFactors = FALSE)
 
 repo_root <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 rscript <- file.path(R.home("bin"), "Rscript")
+run_started_at <- Sys.time()
 
 args <- commandArgs(trailingOnly = TRUE)
 get_arg <- function(name, default = NULL) {
@@ -23,6 +25,7 @@ get_arg <- function(name, default = NULL) {
 
 targets <- strsplit(get_arg("targets", "all"), ",", fixed = TRUE)[[1]]
 targets <- trimws(tolower(targets))
+verbose <- tolower(get_arg("verbose", "false")) %in% c("true", "t", "1", "yes", "y")
 if ("all" %in% targets) {
   targets <- c("check", "micro", "dependent", "independent", "analysis", "models", "results", "descriptives")
 }
@@ -36,15 +39,70 @@ if ("data" %in% targets) {
   })))
 }
 
+log_root <- NULL
+if (!verbose) {
+  log_root <- file.path(
+    repo_root,
+    "data",
+    "analysis",
+    "logs",
+    "workflow",
+    format(run_started_at, "%Y%m%d-%H%M%S")
+  )
+  dir.create(log_root, recursive = TRUE, showWarnings = FALSE)
+}
+
+relative_path <- function(path) {
+  normalized_path <- normalizePath(path, winslash = "/", mustWork = FALSE)
+  escaped_root <- gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", repo_root)
+  sub(paste0("^", escaped_root, "/?"), "", normalized_path)
+}
+
+log_file_for <- function(path) {
+  safe_name <- gsub("[/\\\\:]+", "__", path)
+  file.path(log_root, paste0(safe_name, ".log"))
+}
+
+print_log_tail <- function(log_file, n = 40L) {
+  if (!file.exists(log_file)) {
+    return(invisible(NULL))
+  }
+  lines <- readLines(log_file, warn = FALSE)
+  if (length(lines) == 0) {
+    return(invisible(NULL))
+  }
+  tail_lines <- utils::tail(lines, n)
+  cat("\nLast log lines:\n")
+  cat(paste(tail_lines, collapse = "\n"), "\n", sep = "")
+}
+
 run_script <- function(path) {
   full_path <- file.path(repo_root, path)
   if (!file.exists(full_path)) {
     stop("Workflow script not found: ", path)
   }
-  cat("\n>>> ", path, "\n", sep = "")
-  status <- system2(rscript, shQuote(full_path))
+  started <- Sys.time()
+  cat(">>> ", path, "\n", sep = "")
+  if (verbose) {
+    status <- system2(rscript, shQuote(full_path))
+    log_file <- NULL
+  } else {
+    log_file <- log_file_for(path)
+    status <- system2(rscript, shQuote(full_path), stdout = log_file, stderr = log_file)
+  }
+  elapsed <- round(as.numeric(difftime(Sys.time(), started, units = "secs")), 1)
   if (!identical(status, 0L)) {
+    cat("FAILED (", elapsed, "s)", "\n", sep = "")
+    if (!is.null(log_file)) {
+      cat("Log: ", relative_path(log_file), "\n", sep = "")
+      print_log_tail(log_file)
+    }
     stop("Script failed: ", path, call. = FALSE)
+  }
+  if (is.null(log_file)) {
+    cat("OK (", elapsed, "s)", "\n", sep = "")
+  } else {
+    cat("OK (", elapsed, "s), log: ", relative_path(log_file), "\n", sep = "")
   }
 }
 
@@ -124,6 +182,11 @@ if (length(unknown_targets) > 0) {
 cat("\nSocSwitch workflow\n")
 cat("==================\n")
 cat("Targets: ", paste(targets, collapse = ", "), "\n", sep = "")
+if (!verbose) {
+  cat("Logs: ", relative_path(log_root), "\n", sep = "")
+} else {
+  cat("Verbose mode: child script output is printed directly.\n")
+}
 
 for (target in targets) {
   run_many(workflow[[target]])

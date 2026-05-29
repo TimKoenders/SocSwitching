@@ -32,7 +32,25 @@ plots/
   README.md                # Local output folder instructions
 DATA_AVAILABILITY.md       # Source-level data access information
 REPRODUCIBILITY.md         # Reproduction workflow for authorized users
+VALIDATION.md              # Commands used to verify the repository workflow
 ```
+
+## Workflow Map
+
+The repository is organized around one reproducible project pipeline. The raw survey files remain local and restricted, while the code, manifests, and execution order are tracked.
+
+| Stage | Command target | Main scripts | Main local outputs |
+| --- | --- | --- | --- |
+| Input checks | `check` | `code/00_check_inputs.R` | Console/log report of available local inputs |
+| Microdata construction | `micro` | `code/data_preparation/building_micro_data/` | Combined project microdata under `data/analysis/` |
+| Dependent variables | `dependent` | `code/data_preparation/dependent_variable/` | Vote-share and switching outcome files |
+| Contextual predictors | `independent` | `code/data_preparation/independent_variables/` | Demand salience and supply position files |
+| Analysis data | `analysis` | `code/data_preparation/building_analysis_data/` | Final model-ready datasets |
+| Model estimation | `models` | `code/model/01_*`, `03_*`, `06_*`, `07_*`, `08_*` | Local model objects under `data/analysis/models/` |
+| Model results | `results` | `code/model/02_*`, `04_*`, `05_*`, `09_*` | Tables and result objects under local output folders |
+| Descriptives | `descriptives` | `code/descriptives/` | Descriptive figures and summaries |
+
+The complete workflow is launched with `Rscript code/00_run_all.R --targets=all`. By default, the runner prints only a short status line for each script and writes full script output to timestamped logs under `data/analysis/logs/workflow/`. Use `--verbose=true` to print each child script directly to the console.
 
 ## Reproducibility
 
