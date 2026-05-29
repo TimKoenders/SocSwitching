@@ -54,7 +54,7 @@ run_many <- function(paths) {
   }
 }
 
-micro_dir <- file.path("code", "switching", "data_preparation", "building_micro_data")
+micro_dir <- file.path("code", "data_preparation", "building_micro_data")
 
 workflow <- list(
   check = "code/00_check_inputs.R",
@@ -83,33 +83,33 @@ workflow <- list(
       "32_append_country_files.R"
     ))
   ),
-  dependent = file.path("code", "switching", "data_preparation", "dependent_variable", c(
+  dependent = file.path("code", "data_preparation", "dependent_variable", c(
     "00_prepare_vote_shares_parlgov.R",
     "01_prepare_switching_data.R",
     "02_prepare_realised_transition_datasets.R"
   )),
-  independent = file.path("code", "switching", "data_preparation", "independent_variables", c(
+  independent = file.path("code", "data_preparation", "independent_variables", c(
     "01_prepare_demand_salience.R",
     "02_prepare_supply_positions.R"
   )),
-  analysis = file.path("code", "switching", "data_preparation", "building_analysis_data", c(
+  analysis = file.path("code", "data_preparation", "building_analysis_data", c(
     "01_build_analysis_data.R",
     "02_add_cpds_controls.R"
   )),
-  models = file.path("code", "switching", "model", c(
+  models = file.path("code", "model", c(
     "01_demand_salience_models.R",
     "03_supply_positions_models.R",
     "06_vote_share_change_models.R",
     "07_demand_salience_models_controls.R",
     "08_supply_position_models_controls.R"
   )),
-  results = file.path("code", "switching", "model", c(
+  results = file.path("code", "model", c(
     "02_demand_salience_results.R",
     "04_supply_position_results.R",
     "05_overall_contextual_net_effects.R",
     "09_non_voting_appendix_results.R"
   )),
-  descriptives = file.path("code", "switching", "descriptives", c(
+  descriptives = file.path("code", "descriptives", c(
     "01_austrian_example.R",
     "02_describe_social_democratic_exchanges.R",
     "03_plot_country_net_social_democratic_exchanges.R"

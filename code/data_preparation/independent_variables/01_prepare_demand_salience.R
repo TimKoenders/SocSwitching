@@ -43,7 +43,7 @@
 
 #### Load packages and helpers ------------------------------------------------
 
-source(here::here("code", "switching", "utils", "packages.R"))
+source(here::here("code", "utils", "packages.R"))
 load_packages()
 
 `%||%` <- function(x, y) {

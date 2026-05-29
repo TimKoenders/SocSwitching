@@ -42,7 +42,7 @@ Rscript scripts/install_repro_deps.R
 Package loading is handled by the project helper:
 
 ```r
-source("code/switching/utils/packages.R")
+source("code/utils/packages.R")
 ```
 
 The workflow itself only checks and loads packages; it does not install or update packages during analysis runs.
@@ -68,10 +68,10 @@ Rscript code/00_run_all.R --targets=data
 Internally, the data-preparation scripts run in the following order:
 
 ```text
-code/switching/data_preparation/building_micro_data/
-code/switching/data_preparation/dependent_variable/
-code/switching/data_preparation/independent_variables/
-code/switching/data_preparation/building_analysis_data/
+code/data_preparation/building_micro_data/
+code/data_preparation/dependent_variable/
+code/data_preparation/independent_variables/
+code/data_preparation/building_analysis_data/
 ```
 
 In `building_micro_data/`, scripts `01`-`31` process the country-level `voteswitchR` bundles produced from the original election-study files. Scripts `33` onward add the manually coded CSES Module 6 election studies. `32_append_country_files.R` appends the country-level files into the combined micro-level dataset.

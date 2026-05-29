@@ -18,11 +18,10 @@ Researchers with authorized access can reproduce the analyses by obtaining the r
 code/
   00_check_inputs.R        # Verify local restricted inputs before running the pipeline
   00_run_all.R             # Orchestrate checks, data preparation, models, and outputs
-  switching/
-    data_preparation/      # Project-specific preparation after voteswitchR-style harmonization
-    descriptives/          # Descriptive plots and tables
-    model/                 # Model estimation and result scripts
-    utils/                 # Shared package and helper scripts
+  data_preparation/        # Project-specific preparation after voteswitchR-style harmonization
+  descriptives/            # Descriptive plots and tables
+  model/                   # Model estimation and result scripts
+  utils/                   # Shared package and helper scripts
 config/
   data_paths_template.yml  # Copy to data_paths.yml and adapt local paths
   required_inputs.csv      # Source-level manifest used by the input checker
@@ -46,16 +45,16 @@ The analyses are reproducible conditional on lawful access to the underlying dat
 5. Run `Rscript code/00_check_inputs.R` to verify the local setup.
 6. Run `Rscript code/00_run_all.R --targets=data` to rebuild the analysis data, or `Rscript code/00_run_all.R --targets=all` to run the complete workflow.
 
-The microdata stage runs `code/switching/data_preparation/building_micro_data/`: scripts `01`-`31` start from generated `voteswitchR` country bundles stored under `data/micro/`, each of which can be built from multiple original files in `data/files/`; scripts `33` onward add the manually coded CSES Module 6 election studies from `data/files/`; and `32_append_country_files.R` appends the country files. The appended micro-level files are then processed by `code/switching/data_preparation/building_analysis_data/`.
+The microdata stage runs `code/data_preparation/building_micro_data/`: scripts `01`-`31` start from generated `voteswitchR` country bundles stored under `data/micro/`, each of which can be built from multiple original files in `data/files/`; scripts `33` onward add the manually coded CSES Module 6 election studies from `data/files/`; and `32_append_country_files.R` appends the country files. The appended micro-level files are then processed by `code/data_preparation/building_analysis_data/`.
 
 More detailed instructions are in [REPRODUCIBILITY.md](REPRODUCIBILITY.md).
 
 ## Software
 
-The project is written in R. Install dependencies once with `Rscript scripts/install_repro_deps.R`. Package loading is centralized in `code/switching/utils/packages.R`; shared helpers are in `code/switching/utils/helper_functions.R`. Start an R session from the repository root and run:
+The project is written in R. Install dependencies once with `Rscript scripts/install_repro_deps.R`. Package loading is centralized in `code/utils/packages.R`; shared helpers are in `code/utils/helper_functions.R`. Start an R session from the repository root and run:
 
 ```r
-source("code/switching/utils/packages.R")
+source("code/utils/packages.R")
 ```
 
 The same package helper is used by the workflow scripts.
